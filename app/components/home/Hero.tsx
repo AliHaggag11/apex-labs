@@ -7,8 +7,6 @@ import { FaRocket, FaLightbulb, FaChartLine, FaPlay, FaTimes } from 'react-icons
 const Hero = () => {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
-  const gridPattern = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234B5563' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`;
-
   return (
     <div className="relative min-h-[90vh] bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-dark-bg dark:via-dark-card dark:to-dark-bg overflow-hidden">
       {/* Background decoration */}
@@ -26,10 +24,11 @@ const Hero = () => {
 
       {/* Grid pattern overlay */}
       <div 
-        className="absolute inset-0" 
+        className="absolute inset-0 opacity-[0.15] dark:opacity-[0.07]"
         style={{ 
-          backgroundImage: gridPattern,
-          opacity: 0.5
+          backgroundImage: `radial-gradient(#4B5563 0.5px, transparent 0.5px), radial-gradient(#4B5563 0.5px, transparent 0.5px)`,
+          backgroundSize: '20px 20px',
+          backgroundPosition: '0 0, 10px 10px'
         }} 
       />
 
