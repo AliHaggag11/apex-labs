@@ -1,10 +1,12 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import Image from 'next/image';
-import { FaRocket, FaLightbulb, FaChartLine } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { FaRocket, FaLightbulb, FaChartLine, FaPlay, FaTimes } from 'react-icons/fa';
 
 const Hero = () => {
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+
   return (
     <div className="relative min-h-[90vh] bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-dark-bg dark:via-dark-card dark:to-dark-bg overflow-hidden">
       {/* Background decoration */}
@@ -107,6 +109,7 @@ const Hero = () => {
             </motion.div>
           </motion.div>
 
+          {/* Right column - Video Preview */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -115,23 +118,32 @@ const Hero = () => {
           >
             <div className="relative w-full max-w-lg mx-auto">
               <motion.div
-                initial={{ scale: 0.95 }}
-                animate={{ scale: 1 }}
-                transition={{ 
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatType: "reverse"
-                }}
-                className="relative w-full h-[400px] bg-gradient-to-br from-primary-500/5 to-primary-600/5 dark:from-primary-600/10 dark:to-primary-700/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm"
+                whileHover={{ scale: 1.02 }}
+                className="relative w-full aspect-video bg-gradient-to-br from-primary-500/5 to-primary-600/5 dark:from-primary-600/10 dark:to-primary-700/10 rounded-2xl shadow-2xl overflow-hidden group cursor-pointer"
+                onClick={() => setIsVideoOpen(true)}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-primary-600/10 dark:from-primary-600/20 dark:to-primary-700/20"></div>
+                {/* Video Thumbnail */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-primary-600/10 dark:from-primary-600/20 dark:to-primary-700/20 group-hover:opacity-75 transition-opacity" />
+                
+                {/* Play Button */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center space-y-4">
-                    <div className="w-24 h-24 mx-auto bg-primary-600/10 dark:bg-primary-400/10 rounded-full flex items-center justify-center">
-                      <FaRocket className="h-12 w-12 text-primary-600 dark:text-primary-400" />
-                    </div>
-                    <p className="text-gray-600 dark:text-dark-muted text-sm">Interactive Demo</p>
-                  </div>
+                  <motion.div 
+                    className="relative"
+                    whileHover={{ scale: 1.1 }}
+                  >
+                    <div className="absolute inset-0 bg-primary-600 dark:bg-primary-500 rounded-full blur-lg opacity-40" />
+                    <button
+                      className="relative w-16 h-16 flex items-center justify-center bg-primary-600 dark:bg-primary-500 text-white rounded-full hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
+                    >
+                      <FaPlay className="h-6 w-6 ml-1" />
+                    </button>
+                  </motion.div>
+                </div>
+
+                {/* Video Title */}
+                <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/50 to-transparent">
+                  <h3 className="text-white text-lg font-semibold">Watch How We Transform Businesses</h3>
+                  <p className="text-white/80 text-sm mt-2">See our solutions in action</p>
                 </div>
               </motion.div>
             </div>
@@ -164,6 +176,46 @@ const Hero = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Video Modal */}
+      <AnimatePresence>
+        {isVideoOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setIsVideoOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-4xl aspect-video bg-black rounded-2xl overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setIsVideoOpen(false)}
+                className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
+              >
+                <FaTimes className="w-5 h-5" />
+              </button>
+
+              {/* Video Player */}
+              <div className="w-full h-full">
+                <iframe
+                  className="w-full h-full"
+                  src="https://www.youtube.com/embed/your-video-id?autoplay=1"
+                  title="Apex Labs Introduction"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
