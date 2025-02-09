@@ -7,6 +7,18 @@ import { FaRocket, FaLightbulb, FaChartLine, FaPlay, FaTimes } from 'react-icons
 const Hero = () => {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const target = document.querySelector(targetId);
+    if (target) {
+      const offsetTop = target.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: offsetTop,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div className="relative min-h-[90vh] bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-dark-bg dark:via-dark-card dark:to-dark-bg overflow-hidden">
       {/* Background decoration */}
@@ -64,6 +76,7 @@ const Hero = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 href="#contact"
+                onClick={(e) => handleScroll(e, '#contact')}
                 className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 md:text-lg shadow-lg shadow-primary-600/20 dark:shadow-primary-500/20"
               >
                 Book Consultation
@@ -72,6 +85,7 @@ const Hero = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 href="#services"
+                onClick={(e) => handleScroll(e, '#services')}
                 className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-primary-600 dark:text-primary-400 bg-white dark:bg-dark-card hover:bg-gray-50 dark:hover:bg-dark-border md:text-lg shadow-lg shadow-gray-200/50 dark:shadow-dark-border/20 ring-1 ring-primary-600/20 dark:ring-primary-400/20"
               >
                 Explore Services
@@ -157,20 +171,50 @@ const Hero = () => {
           transition={{ duration: 0.8, delay: 0.8 }}
           className="mt-24 text-center"
         >
-          <p className="text-sm font-semibold text-gray-500 dark:text-dark-muted tracking-wide uppercase">
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 1 }}
+            className="text-sm font-semibold bg-gradient-to-r from-primary-600 to-blue-500 dark:from-primary-400 dark:to-blue-400 bg-clip-text text-transparent uppercase tracking-wider"
+          >
             Trusted by Industry Leaders
-          </p>
-          <div className="mt-8 flex justify-center space-x-12">
-            {['AWS', 'Microsoft', 'Google', 'SAP', 'Salesforce'].map((partner, index) => (
+          </motion.p>
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 justify-items-center items-center px-4 sm:px-6">
+            {[
+              {
+                name: 'AWS',
+                logo: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg"
+              },
+              {
+                name: 'Microsoft',
+                logo: "https://upload.wikimedia.org/wikipedia/commons/2/25/Microsoft_icon.svg"
+              },
+              {
+                name: 'Google',
+                logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg"
+              },
+              {
+                name: 'SAP',
+                logo: "https://upload.wikimedia.org/wikipedia/commons/5/59/SAP_2011_logo.svg"
+              },
+              {
+                name: 'Salesforce',
+                logo: "https://upload.wikimedia.org/wikipedia/commons/f/f9/Salesforce.com_logo.svg"
+              }
+            ].map((partner, index) => (
               <motion.div
-                key={partner}
+                key={partner.name}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 1.2 + index * 0.1 }}
                 whileHover={{ scale: 1.1 }}
-                className="text-gray-400 dark:text-dark-muted transition-all duration-300 filter grayscale hover:grayscale-0 opacity-75 hover:opacity-100 font-semibold"
+                className="w-32 h-16 relative flex items-center justify-center text-gray-400 dark:text-dark-muted transition-all duration-300 filter grayscale hover:grayscale-0 opacity-75 hover:opacity-100 p-4"
               >
-                {partner}
+                <img 
+                  src={partner.logo}
+                  alt={`${partner.name} logo`}
+                  className="w-full h-full object-contain"
+                />
               </motion.div>
             ))}
           </div>
@@ -204,7 +248,7 @@ const Hero = () => {
 
               {/* Video Player */}
               <div className="w-full h-full">
-                <iframe 
+                <iframe
                   className="w-full h-full"
                   src="https://www.youtube.com/embed/yH1GP2TqwU8?si=5sAuQSZAoqcWZMFv&rel=0&showinfo=0&modestbranding=1"
                   title="YouTube video player" 
