@@ -66,7 +66,7 @@ const Hero = () => {
                 href="#contact"
                 className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 md:text-lg shadow-lg shadow-primary-600/20 dark:shadow-primary-500/20"
               >
-                Get Free Consultation
+                Book Consultation
               </motion.a>
               <motion.a
                 whileHover={{ scale: 1.05 }}
@@ -199,11 +199,12 @@ const Hero = () => {
 
               {/* Video Player */}
               <div className="w-full h-full">
-                <iframe
+                <iframe 
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/your-video-id?autoplay=1"
-                  title="Apex Labs Introduction"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  src="https://www.youtube.com/embed/yH1GP2TqwU8?si=5sAuQSZAoqcWZMFv&amp;controls=0"
+                  title="YouTube video player" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                  referrerPolicy="strict-origin-when-cross-origin" 
                   allowFullScreen
                 />
               </div>
