@@ -11,26 +11,21 @@ const Hero = () => {
     <div className="relative min-h-[90vh] bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-dark-bg dark:via-dark-card dark:to-dark-bg overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
+        {/* Top right blob */}
         <div className="absolute -top-1/2 -right-1/2 w-full h-full">
-          <div className="w-[800px] h-[800px] bg-primary-200/30 dark:bg-primary-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+          <div className="w-[800px] h-[800px] bg-gradient-to-br from-primary-200/40 to-primary-300/40 dark:from-primary-900/20 dark:to-primary-800/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
         </div>
+        {/* Bottom left blob */}
         <div className="absolute -bottom-1/2 -left-1/2 w-full h-full">
-          <div className="w-[800px] h-[800px] bg-primary-300/30 dark:bg-primary-800/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+          <div className="w-[800px] h-[800px] bg-gradient-to-tr from-primary-300/40 to-blue-200/40 dark:from-primary-800/20 dark:to-primary-700/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
         </div>
+        {/* Center blob */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full">
-          <div className="w-[600px] h-[600px] bg-primary-100/30 dark:bg-primary-700/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
+          <div className="w-[600px] h-[600px] bg-gradient-to-r from-primary-100/30 to-blue-100/30 dark:from-primary-700/20 dark:to-primary-600/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
         </div>
+        {/* Extra decorative elements */}
+        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-primary-100/5 to-transparent dark:via-primary-500/5"></div>
       </div>
-
-      {/* Grid pattern overlay */}
-      <div 
-        className="absolute inset-0 opacity-[0.15] dark:opacity-[0.07]"
-        style={{ 
-          backgroundImage: `radial-gradient(#4B5563 0.5px, transparent 0.5px), radial-gradient(#4B5563 0.5px, transparent 0.5px)`,
-          backgroundSize: '20px 20px',
-          backgroundPosition: '0 0, 10px 10px'
-        }} 
-      />
 
       {/* Content */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16">
