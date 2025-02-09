@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import Link from 'next/link';
 import { ThemeToggle } from './ThemeToggle';
-import { FaBars, FaTimes } from 'react-icons/fa';
+import { FaBars, FaTimes, FaCube } from 'react-icons/fa';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +19,7 @@ const Navbar = () => {
         <motion.nav 
           initial={{ y: -100 }}
           animate={{ y: 0 }}
-          className="relative w-full bg-white/95 dark:bg-dark-card/95 shadow-[0_2px_20px_rgba(0,0,0,0.04)] dark:shadow-dark-border/10"
+          className="relative w-full bg-white/70 dark:bg-dark-card/70 backdrop-blur-lg border-b border-gray-200/20 dark:border-dark-border/20"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-20">
@@ -27,8 +27,13 @@ const Navbar = () => {
                 whileHover={{ scale: 1.05 }}
                 className="flex-shrink-0"
               >
-                <Link href="/" className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-                  Apex Labs
+                <Link href="/" className="flex items-center space-x-2 text-2xl font-bold">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-blue-500 dark:from-primary-400 dark:to-blue-400 flex items-center justify-center text-white shadow-lg shadow-primary-600/20 dark:shadow-primary-400/20">
+                    <FaCube className="w-5 h-5" />
+                  </div>
+                  <span className="bg-gradient-to-r from-primary-600 to-blue-500 dark:from-primary-400 dark:to-blue-400 bg-clip-text text-transparent">
+                    Apex Labs
+                  </span>
                 </Link>
               </motion.div>
               
@@ -47,7 +52,7 @@ const Navbar = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       href="#contact"
-                      className="bg-primary-600 dark:bg-primary-500 text-white px-5 py-2.5 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
+                      className="bg-gradient-to-r from-primary-600 to-blue-500 dark:from-primary-500 dark:to-blue-500 text-white px-5 py-2.5 rounded-xl hover:shadow-lg hover:shadow-primary-600/20 dark:hover:shadow-primary-500/20 transition-all"
                     >
                       Contact Us
                     </motion.a>
@@ -63,7 +68,7 @@ const Navbar = () => {
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsOpen(!isOpen)}
-                  className="p-2 rounded-lg bg-gray-100 dark:bg-dark-border text-gray-600 dark:text-dark-muted hover:bg-gray-200 dark:hover:bg-dark-bg transition-colors"
+                  className="p-2 rounded-xl bg-gray-100 dark:bg-dark-border text-gray-600 dark:text-dark-muted hover:bg-gray-200 dark:hover:bg-dark-bg transition-colors"
                 >
                   {isOpen ? <FaTimes className="h-5 w-5" /> : <FaBars className="h-5 w-5" />}
                 </motion.button>
@@ -79,32 +84,44 @@ const Navbar = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-x-0 top-20 bg-white dark:bg-dark-card shadow-lg border-t border-gray-200/20 dark:border-dark-border/20"
+              className="fixed inset-0 top-20 bg-white dark:bg-dark-card backdrop-blur-lg"
             >
               <motion.div
-                initial={{ y: -20 }}
-                animate={{ y: 0 }}
-                exit={{ y: -20 }}
-                className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 20, opacity: 0 }}
+                className="h-[calc(100vh-5rem)] flex flex-col justify-between"
               >
-                <div className="space-y-3">
-                  <MobileNavLink href="/services" onClick={() => setIsOpen(false)}>Services</MobileNavLink>
-                  <MobileNavLink href="/ai-automation" onClick={() => setIsOpen(false)}>AI Automation</MobileNavLink>
-                  <MobileNavLink href="/solutions" onClick={() => setIsOpen(false)}>Solutions</MobileNavLink>
-                  <MobileNavLink href="/pricing" onClick={() => setIsOpen(false)}>Pricing</MobileNavLink>
-                  <MobileNavLink href="/case-studies" onClick={() => setIsOpen(false)}>Case Studies</MobileNavLink>
-                  <MobileNavLink href="/blog" onClick={() => setIsOpen(false)}>Blog</MobileNavLink>
-                  <MobileNavLink href="/about" onClick={() => setIsOpen(false)}>About</MobileNavLink>
+                <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full">
+                  <div className="space-y-6">
+                    {[
+                      { href: '/services', label: 'Services' },
+                      { href: '/ai-automation', label: 'AI Automation' },
+                      { href: '/solutions', label: 'Solutions' },
+                      { href: '/pricing', label: 'Pricing' },
+                      { href: '/case-studies', label: 'Case Studies' },
+                      { href: '/blog', label: 'Blog' },
+                      { href: '/about', label: 'About' }
+                    ].map((item) => (
+                      <MobileNavLink key={item.href} href={item.href} onClick={() => setIsOpen(false)}>
+                        {item.label}
+                      </MobileNavLink>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full border-t border-gray-200/10 dark:border-dark-border/10 space-y-6">
                   <motion.a
                     whileTap={{ scale: 0.95 }}
                     href="#contact"
                     onClick={() => setIsOpen(false)}
-                    className="block w-full text-center bg-primary-600 dark:bg-primary-500 text-white px-4 py-3 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
+                    className="block w-full text-center bg-gradient-to-r from-primary-600 to-blue-500 dark:from-primary-500 dark:to-blue-500 text-white px-6 py-4 rounded-xl text-lg font-medium hover:shadow-lg hover:shadow-primary-600/20 dark:hover:shadow-primary-500/20 transition-all"
                   >
                     Contact Us
                   </motion.a>
-                  <div className="pt-4 mt-4 border-t border-gray-200 dark:border-dark-border flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-dark-muted">Toggle theme</span>
+                  
+                  <div className="flex items-center justify-between px-4">
+                    <span className="text-base text-gray-600 dark:text-dark-muted font-medium">Switch Theme</span>
                     <ThemeToggle />
                   </div>
                 </div>
@@ -120,24 +137,34 @@ const Navbar = () => {
 const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
   <Link href={href}>
     <motion.span
-      className="text-gray-600 dark:text-dark-muted hover:text-primary-600 dark:hover:text-primary-400 text-sm font-medium cursor-pointer"
+      className="text-gray-600 dark:text-dark-muted hover:text-primary-600 dark:hover:text-primary-400 text-sm font-medium cursor-pointer transition-colors relative group"
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
     >
       {children}
+      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary-600 to-blue-500 dark:from-primary-400 dark:to-blue-400 group-hover:w-full transition-all duration-300" />
     </motion.span>
   </Link>
 );
 
 const MobileNavLink = ({ href, onClick, children }: { href: string; onClick: () => void; children: React.ReactNode }) => (
   <Link href={href}>
-    <motion.span
-      className="block text-gray-600 dark:text-dark-muted hover:text-primary-600 dark:hover:text-primary-400 px-4 py-3 rounded-lg text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-border transition-colors"
+    <motion.div
+      className="block text-gray-800 dark:text-white text-lg font-medium cursor-pointer transition-colors"
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
     >
-      {children}
-    </motion.span>
+      <div className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-dark-border/50">
+        <span>{children}</span>
+        <motion.span
+          className="text-primary-600 dark:text-primary-400"
+          initial={{ x: -4, opacity: 0 }}
+          whileHover={{ x: 0, opacity: 1 }}
+        >
+          →
+        </motion.span>
+      </div>
+    </motion.div>
   </Link>
 );
 
