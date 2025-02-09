@@ -118,6 +118,11 @@ const Hero = () => {
                 onClick={() => setIsVideoOpen(true)}
               >
                 {/* Video Thumbnail */}
+                <img 
+                  src="https://img.youtube.com/vi/yH1GP2TqwU8/maxresdefault.jpg"
+                  alt="Video Thumbnail"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 to-primary-600/10 dark:from-primary-600/20 dark:to-primary-700/20 group-hover:opacity-75 transition-opacity" />
                 
                 {/* Play Button */}
@@ -201,7 +206,7 @@ const Hero = () => {
               <div className="w-full h-full">
                 <iframe 
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/yH1GP2TqwU8?si=5sAuQSZAoqcWZMFv&amp;controls=0"
+                  src="https://www.youtube.com/embed/yH1GP2TqwU8?si=5sAuQSZAoqcWZMFv&rel=0&showinfo=0&modestbranding=1"
                   title="YouTube video player" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                   referrerPolicy="strict-origin-when-cross-origin" 
