@@ -11,20 +11,16 @@ const Hero = () => {
     <div className="relative min-h-[90vh] bg-gradient-to-br from-blue-50 via-white to-blue-100 dark:from-dark-bg dark:via-dark-card dark:to-dark-bg overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Top right blob */}
+        {/* Animated blobs */}
         <div className="absolute -top-1/2 -right-1/2 w-full h-full">
-          <div className="w-[800px] h-[800px] bg-gradient-to-br from-primary-200/40 to-primary-300/40 dark:from-primary-900/20 dark:to-primary-800/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+          <div className="w-[800px] h-[800px] bg-blue-100/50 dark:bg-primary-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob" />
         </div>
-        {/* Bottom left blob */}
         <div className="absolute -bottom-1/2 -left-1/2 w-full h-full">
-          <div className="w-[800px] h-[800px] bg-gradient-to-tr from-primary-300/40 to-blue-200/40 dark:from-primary-800/20 dark:to-primary-700/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+          <div className="w-[800px] h-[800px] bg-blue-200/50 dark:bg-primary-800/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000" />
         </div>
-        {/* Center blob */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full">
-          <div className="w-[600px] h-[600px] bg-gradient-to-r from-primary-100/30 to-blue-100/30 dark:from-primary-700/20 dark:to-primary-600/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
+          <div className="w-[600px] h-[600px] bg-blue-50/50 dark:bg-primary-700/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000" />
         </div>
-        {/* Extra decorative elements */}
-        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-primary-100/5 to-transparent dark:via-primary-500/5"></div>
       </div>
 
       {/* Content */}
@@ -55,7 +51,7 @@ const Hero = () => {
               className="mt-6 text-lg text-gray-600 dark:text-dark-muted sm:text-xl max-w-3xl"
             >
               Empower your organization with cutting-edge digital solutions and AI-driven automation. 
-              Stay ahead of the competition with Apex Labs' innovative technology solutions.
+              Stay ahead of the competition with Apex Labs&apos; innovative technology solutions.
             </motion.p>
 
             <motion.div
