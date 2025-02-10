@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
-  FaRobot, FaBrain, FaChartLine, FaUserCog, 
+  FaRobot, FaChartLine, FaUserCog, 
   FaIndustry, FaCode, FaDatabase, FaEye,
   FaComments, FaShieldAlt, FaChartBar, FaUserFriends
 } from 'react-icons/fa';
