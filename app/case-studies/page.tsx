@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FaRocket, FaChartLine, FaRobot, FaShoppingCart, FaHospital, FaUniversity, FaTruck, FaShieldAlt, FaArrowRight } from 'react-icons/fa';
+import { FaRocket, FaChartLine, FaShoppingCart, FaHospital, FaUniversity, FaTruck, FaShieldAlt, FaArrowRight } from 'react-icons/fa';
 import Link from 'next/link';
 import Image from 'next/image';
 
