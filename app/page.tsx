@@ -2,7 +2,6 @@ import dynamic from 'next/dynamic';
 
 // Dynamically import client components
 const Navbar = dynamic(() => import('./components/layout/Navbar'));
-const Footer = dynamic(() => import('./components/layout/Footer'));
 const Hero = dynamic(() => import('./components/home/Hero'));
 const Services = dynamic(() => import('./components/home/Services'));
 const AIAutomation = dynamic(() => import('./components/home/AIAutomation'));
@@ -18,7 +17,6 @@ export default function Home() {
         <AIAutomation />
         <Contact />
       </main>
-      <Footer />
     </div>
   );
 }

@@ -2,13 +2,36 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
-import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaExclamationCircle, FaRocket, FaCogs, FaUsers, FaShieldAlt, FaHeadset, FaDollarSign } from 'react-icons/fa';
 
 interface FormErrors {
   name?: string;
   email?: string;
   message?: string;
 }
+
+const whyChoosePoints = [
+  {
+    icon: FaRocket,
+    title: 'Innovation First',
+    description: 'Cutting-edge AI and automation solutions'
+  },
+  {
+    icon: FaCogs,
+    title: 'Custom Solutions',
+    description: 'Tailored to your specific business needs'
+  },
+  {
+    icon: FaUsers,
+    title: 'Expert Team',
+    description: 'Seasoned professionals in AI and cloud'
+  },
+  {
+    icon: FaShieldAlt,
+    title: 'Proven Track Record',
+    description: 'Trusted by leading enterprises worldwide'
+  }
+];
 
 const Contact = () => {
   const [formState, setFormState] = useState({
@@ -123,42 +146,60 @@ const Contact = () => {
             transition={{ duration: 0.8 }}
             className="bg-white/50 dark:bg-dark-card/50 backdrop-blur-sm p-8 rounded-3xl shadow-lg shadow-gray-200/50 dark:shadow-dark-border/10 ring-1 ring-gray-200/50 dark:ring-dark-border/10"
           >
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-dark-text mb-6">
-              Why Choose Apex Labs?
-            </h3>
-            <ul className="space-y-4">
-              {[
-                'Industry-leading expertise in AI and automation',
-                'Customized solutions for your specific needs',
-                'Proven track record of successful implementations',
-                'Comprehensive support and maintenance',
-                'Flexible pricing models'
-              ].map((point, index) => (
-                <motion.li
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-8"
+            >
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-dark-text">
+                Why Choose Apex Labs?
+              </h3>
+              <div className="mt-2 h-1 w-20 bg-gradient-to-r from-primary-600 to-blue-600 dark:from-primary-400 dark:to-blue-400 mx-auto rounded-full" />
+            </motion.div>
+
+            <div className="grid grid-cols-2 gap-6">
+              {whyChoosePoints.map((point, index) => (
+                <motion.div
+                  key={point.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="flex items-start gap-3"
+                  className="group"
                 >
-                  <svg
-                    className="h-6 w-6 text-primary-600 dark:text-primary-400 mt-0.5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <span className="text-gray-600 dark:text-dark-muted">{point}</span>
-                </motion.li>
+                  <div className="flex flex-col items-center justify-between text-center h-36 p-4 rounded-2xl bg-white dark:bg-dark-card border border-gray-100 dark:border-dark-border hover:border-primary-500/20 dark:hover:border-primary-400/20 transition-colors">
+                    <div className="flex flex-col items-center">
+                      <div className="mb-3 text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/10 p-2 rounded-xl">
+                        <point.icon className="w-5 h-5" />
+                      </div>
+                      <h4 className="text-base font-semibold text-gray-900 dark:text-dark-text">
+                        {point.title}
+                      </h4>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-dark-muted">
+                      {point.description}
+                    </p>
+                  </div>
+                </motion.div>
               ))}
-            </ul>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              className="mt-6 text-center"
+            >
+              <a href="/about" className="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
+                Learn more about our approach
+                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
+            </motion.div>
           </motion.div>
 
           <motion.div
@@ -327,8 +368,8 @@ const Contact = () => {
                   >
                     {isSubmitting ? (
                       <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
                     ) : (
                       'Get Free Consultation'

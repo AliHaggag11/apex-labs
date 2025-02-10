@@ -1,151 +1,164 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FaLinkedin, FaTwitter, FaGithub, FaEnvelope } from 'react-icons/fa';
+import Link from 'next/link';
+import { FaCube, FaTwitter, FaLinkedin, FaGithub, FaEnvelope } from 'react-icons/fa';
+import { useState } from 'react';
 
 const Footer = () => {
-  const navigation = {
-    solutions: [
-      { name: 'Cloud & Infrastructure', href: '/services/cloud' },
-      { name: 'Business Automation', href: '/services/automation' },
-      { name: 'AI Solutions', href: '/services/ai' },
-      { name: 'E-Commerce', href: '/services/ecommerce' },
-    ],
-    company: [
-      { name: 'About Us', href: '/about' },
-      { name: 'Careers', href: '/careers' },
-      { name: 'Blog', href: '/blog' },
-      { name: 'Contact', href: '/contact' },
-    ],
-    resources: [
-      { name: 'Documentation', href: '/docs' },
-      { name: 'Case Studies', href: '/case-studies' },
-      { name: 'Webinars', href: '/webinars' },
-      { name: 'Partners', href: '/partners' },
-    ],
-    social: [
-      {
-        name: 'LinkedIn',
-        href: '#',
-        icon: FaLinkedin,
-      },
-      {
-        name: 'Twitter',
-        href: '#',
-        icon: FaTwitter,
-      },
-      {
-        name: 'GitHub',
-        href: '#',
-        icon: FaGithub,
-      },
-      {
-        name: 'Email',
-        href: 'mailto:contact@apexlabs.com',
-        icon: FaEnvelope,
-      },
-    ],
+  const [email, setEmail] = useState('');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Simulate API call
+    setTimeout(() => {
+      setIsSubscribed(true);
+      setEmail('');
+    }, 1000);
   };
 
+  const footerLinks = [
+    {
+      title: 'Solutions',
+      links: [
+        { name: 'AI Automation', href: '/ai-automation' },
+        { name: 'Cloud Infrastructure', href: '/services#cloud' },
+        { name: 'Business Process', href: '/services#process' },
+        { name: 'E-Commerce', href: '/services#ecommerce' },
+        { name: 'Data Analytics', href: '/services#analytics' }
+      ]
+    },
+    {
+      title: 'Company',
+      links: [
+        { name: 'About Us', href: '/about' },
+        { name: 'Case Studies', href: '/case-studies' },
+        { name: 'Blog', href: '/blog' },
+        { name: 'Careers', href: '/careers' },
+        { name: 'Contact', href: '#contact' }
+      ]
+    },
+    {
+      title: 'Resources',
+      links: [
+        { name: 'Documentation', href: '/docs' },
+        { name: 'API Reference', href: '/api' },
+        { name: 'Partner Program', href: '/partners' },
+        { name: 'Press Kit', href: '/press' }
+      ]
+    }
+  ];
+
   return (
-    <footer className="bg-white dark:bg-dark-bg border-t border-gray-200 dark:border-dark-border">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
-        <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-          <div className="space-y-8 xl:col-span-1">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-2xl font-bold text-primary-600 dark:text-primary-400">Apex Labs</h2>
-              <p className="mt-4 text-gray-600 dark:text-dark-muted text-sm">
-                Transforming businesses through digitalization and AI automation. 
-                Stay ahead of the competition with our innovative solutions.
-              </p>
-            </motion.div>
-            <div className="flex space-x-6">
-              {navigation.social.map((item) => (
-                <motion.a
-                  key={item.name}
-                  href={item.href}
-                  className="text-gray-400 hover:text-gray-500 dark:text-dark-muted dark:hover:text-dark-text"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
+    <footer className="bg-white dark:bg-dark-card border-t border-gray-200 dark:border-dark-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
+          {/* Brand and Newsletter */}
+          <div className="lg:col-span-2 space-y-8">
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-blue-500 dark:from-primary-400 dark:to-blue-400 flex items-center justify-center text-white shadow-lg shadow-primary-600/20 dark:shadow-primary-400/20">
+                <FaCube className="w-5 h-5" />
+              </div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-blue-500 dark:from-primary-400 dark:to-blue-400 bg-clip-text text-transparent">
+                Apex Labs
+              </span>
+            </Link>
+            <p className="text-gray-600 dark:text-dark-muted max-w-sm">
+              Transforming businesses through cutting-edge AI and automation solutions. Stay updated with our latest innovations.
+            </p>
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-dark-text">
+                Subscribe to our newsletter
+              </h3>
+              {isSubscribed ? (
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-green-600 dark:text-green-400 text-sm"
                 >
-                  <span className="sr-only">{item.name}</span>
-                  <item.icon className="h-6 w-6" aria-hidden="true" />
+                  Thank you for subscribing! 🎉
+                </motion.p>
+              ) : (
+                <form onSubmit={handleSubscribe} className="flex gap-2">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="flex-1 px-4 py-2 rounded-xl border border-gray-300 dark:border-dark-border bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent"
+                    required
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    className="px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-xl hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
+                  >
+                    Subscribe
+                  </motion.button>
+                </form>
+              )}
+            </div>
+          </div>
+
+          {/* Links */}
+          {footerLinks.map((group) => (
+            <div key={group.title} className="space-y-6">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-dark-text">
+                {group.title}
+              </h3>
+              <ul className="space-y-4">
+                {group.links.map((link) => (
+                  <li key={link.name}>
+                    <Link 
+                      href={link.href}
+                      className="text-gray-600 dark:text-dark-muted hover:text-primary-600 dark:hover:text-primary-400 text-sm transition-colors"
+                    >
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom section */}
+        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-dark-border">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <div className="flex items-center space-x-4">
+              {[
+                { icon: FaTwitter, href: 'https://twitter.com' },
+                { icon: FaLinkedin, href: 'https://linkedin.com' },
+                { icon: FaGithub, href: 'https://github.com' },
+                { icon: FaEnvelope, href: 'mailto:contact@apexlabs.ai' }
+              ].map((social, index) => (
+                <motion.a
+                  key={index}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-dark-border text-gray-600 dark:text-dark-muted hover:bg-primary-100 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                >
+                  <social.icon className="w-4 h-4" />
                 </motion.a>
               ))}
             </div>
-          </div>
-          <div className="mt-12 grid grid-cols-2 gap-8 xl:mt-0 xl:col-span-2">
-            <div className="md:grid md:grid-cols-2 md:gap-8">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-400 dark:text-dark-muted tracking-wider uppercase">
-                  Solutions
-                </h3>
-                <ul className="mt-4 space-y-4">
-                  {navigation.solutions.map((item) => (
-                    <li key={item.name}>
-                      <motion.a
-                        href={item.href}
-                        className="text-base text-gray-600 dark:text-dark-muted hover:text-primary-600 dark:hover:text-primary-400"
-                        whileHover={{ x: 5 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        {item.name}
-                      </motion.a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="mt-12 md:mt-0">
-                <h3 className="text-sm font-semibold text-gray-400 dark:text-dark-muted tracking-wider uppercase">
-                  Company
-                </h3>
-                <ul className="mt-4 space-y-4">
-                  {navigation.company.map((item) => (
-                    <li key={item.name}>
-                      <motion.a
-                        href={item.href}
-                        className="text-base text-gray-600 dark:text-dark-muted hover:text-primary-600 dark:hover:text-primary-400"
-                        whileHover={{ x: 5 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        {item.name}
-                      </motion.a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <div className="md:grid md:grid-cols-1 md:gap-8">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-400 dark:text-dark-muted tracking-wider uppercase">
-                  Resources
-                </h3>
-                <ul className="mt-4 space-y-4">
-                  {navigation.resources.map((item) => (
-                    <li key={item.name}>
-                      <motion.a
-                        href={item.href}
-                        className="text-base text-gray-600 dark:text-dark-muted hover:text-primary-600 dark:hover:text-primary-400"
-                        whileHover={{ x: 5 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        {item.name}
-                      </motion.a>
-                    </li>
-                  ))}
-                </ul>
+            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-8 text-sm text-gray-600 dark:text-dark-muted">
+              <span>© 2024 Apex Labs. All rights reserved.</span>
+              <div className="flex items-center space-x-8">
+                <Link href="/privacy" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                  Privacy Policy
+                </Link>
+                <Link href="/terms" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                  Terms of Service
+                </Link>
               </div>
             </div>
           </div>
-        </div>
-        <div className="mt-12 border-t border-gray-200 dark:border-dark-border pt-8">
-          <p className="text-base text-gray-400 dark:text-dark-muted text-center">
-            &copy; {new Date().getFullYear()} Apex Labs. All rights reserved.
-          </p>
         </div>
       </div>
     </footer>
