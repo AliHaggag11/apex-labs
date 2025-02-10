@@ -137,7 +137,7 @@ export default function Contact() {
               Get in Touch
             </motion.span>
             <h1 className="text-4xl font-extrabold text-gray-900 dark:text-dark-text sm:text-5xl lg:text-6xl">
-              Let's Build Something
+              Let&apos;s Build Something
               <span className="block mt-2 bg-gradient-to-r from-primary-600 to-blue-600 dark:from-primary-400 dark:to-blue-400 bg-clip-text text-transparent">
                 Extraordinary Together
               </span>
@@ -204,7 +204,7 @@ export default function Contact() {
                   Send Us a Message
                 </h2>
                 <p className="mt-2 text-gray-600 dark:text-dark-muted">
-                  Fill out the form below and we'll get back to you shortly
+                  Fill out the form below and we&apos;ll get back to you shortly
                 </p>
               </div>
 
@@ -221,7 +221,7 @@ export default function Contact() {
                     Thank You!
                   </h3>
                   <p className="text-gray-600 dark:text-dark-muted mb-8">
-                    We've received your message and will get back to you within 24 hours.
+                    We&apos;ve received your message and we&apos;ll get back to you within 24 hours.
                   </p>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
