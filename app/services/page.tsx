@@ -4,10 +4,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
-  FaRocket, FaCloud, FaRobot, FaBrain, FaChartLine, FaShieldAlt, 
-  FaCode, FaDatabase, FaMobile, FaDesktop, FaCogs, FaServer,
-  FaCheckCircle, FaArrowRight, FaStore, FaHospital, FaUniversity,
-  FaIndustry, FaChartBar, FaGlobe, FaUsersCog, FaLock
+  FaRocket, FaBrain, FaCheckCircle, FaArrowRight,
+  FaIndustry, FaGlobe, FaCogs, FaDatabase
 } from 'react-icons/fa';
 
 const services = [
