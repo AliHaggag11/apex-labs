@@ -47,7 +47,7 @@ export default function NotFound() {
             Page Not Found
           </h1>
           <p className="text-gray-600 dark:text-dark-muted">
-            The page you're looking for doesn't exist or has been moved.
+            The page you&apos;re looking for doesn&apos;t exist or has been moved.
           </p>
         </motion.div>
 
@@ -123,8 +123,7 @@ export default function NotFound() {
             className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
           >
             contact our support team
-          </Link>
-          .
+          </Link>.
         </motion.p>
       </div>
     </div>

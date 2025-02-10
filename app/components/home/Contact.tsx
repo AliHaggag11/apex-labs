@@ -222,7 +222,7 @@ const Contact = () => {
                     Thank You!
                   </h3>
                   <p className="text-gray-600 dark:text-dark-muted text-center mb-6">
-                    We've received your message and will get back to you within 24 hours.
+                    We&apos;ve received your message and will get back to you within 24 hours.
                   </p>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
