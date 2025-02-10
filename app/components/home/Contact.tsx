@@ -138,28 +138,28 @@ const Contact = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="bg-white/50 dark:bg-dark-card/50 backdrop-blur-sm p-8 rounded-3xl shadow-lg shadow-gray-200/50 dark:shadow-dark-border/10 ring-1 ring-gray-200/50 dark:ring-dark-border/10"
+            className="bg-white/50 dark:bg-dark-card/50 backdrop-blur-sm p-6 sm:p-8 rounded-3xl shadow-lg shadow-gray-200/50 dark:shadow-dark-border/10 ring-1 ring-gray-200/50 dark:ring-dark-border/10"
           >
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="text-center mb-8"
+              className="text-center mb-6 sm:mb-8"
             >
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-dark-text">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-dark-text">
                 Why Choose Apex Labs?
               </h3>
               <div className="mt-2 h-1 w-20 bg-gradient-to-r from-primary-600 to-blue-600 dark:from-primary-400 dark:to-blue-400 mx-auto rounded-full" />
             </motion.div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               {whyChoosePoints.map((point, index) => (
                 <motion.div
                   key={point.title}
@@ -169,16 +169,16 @@ const Contact = () => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="group"
                 >
-                  <div className="flex flex-col items-center justify-between text-center h-36 p-4 rounded-2xl bg-white dark:bg-dark-card border border-gray-100 dark:border-dark-border hover:border-primary-500/20 dark:hover:border-primary-400/20 transition-colors">
-                    <div className="flex flex-col items-center">
-                      <div className="mb-3 text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/10 p-2 rounded-xl">
-                        <point.icon className="w-5 h-5" />
+                  <div className="flex flex-col items-center justify-between h-[180px] p-6 rounded-2xl bg-white dark:bg-dark-card border border-gray-100 dark:border-dark-border hover:border-primary-500/20 dark:hover:border-primary-400/20 transition-colors">
+                    <div className="flex flex-col items-center space-y-3">
+                      <div className="w-12 h-12 flex items-center justify-center text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/10 rounded-xl">
+                        <point.icon className="w-6 h-6" />
                       </div>
-                      <h4 className="text-base font-semibold text-gray-900 dark:text-dark-text">
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-dark-text">
                         {point.title}
                       </h4>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-dark-muted">
+                    <p className="text-sm text-gray-600 dark:text-dark-muted text-center">
                       {point.description}
                     </p>
                   </div>
@@ -191,7 +191,7 @@ const Contact = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.6 }}
-              className="mt-6 text-center"
+              className="mt-8 text-center"
             >
               <a href="/about" className="inline-flex items-center text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
                 Learn more about our approach

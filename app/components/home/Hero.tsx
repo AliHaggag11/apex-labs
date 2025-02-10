@@ -179,7 +179,7 @@ const Hero = () => {
           >
             Trusted by Industry Leaders
           </motion.p>
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 justify-items-center items-center px-4 sm:px-6">
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8 justify-items-center items-center px-4 sm:px-6">
             {[
               {
                 name: 'AWS',
@@ -200,6 +200,10 @@ const Hero = () => {
               {
                 name: 'Salesforce',
                 logo: "https://upload.wikimedia.org/wikipedia/commons/f/f9/Salesforce.com_logo.svg"
+              },
+              {
+                name: 'Oracle',
+                logo: "https://upload.wikimedia.org/wikipedia/commons/5/50/Oracle_logo.svg"
               }
             ].map((partner, index) => (
               <motion.div
