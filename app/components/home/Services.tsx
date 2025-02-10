@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FaCloud, FaRobot, FaShoppingCart, FaChartLine, FaDatabase, FaIndustry, FaDigitalTachograph, FaShieldAlt, FaChartBar, FaCode } from 'react-icons/fa';
+import { FaCloud, FaRobot, FaShoppingCart, FaChartLine, FaDatabase, FaIndustry} from 'react-icons/fa';
 import clsx from 'clsx';
 
 const services = [
