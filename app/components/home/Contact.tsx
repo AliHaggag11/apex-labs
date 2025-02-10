@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
-import { FaCheckCircle, FaExclamationCircle, FaRocket, FaCogs, FaUsers, FaShieldAlt, FaHeadset, FaDollarSign } from 'react-icons/fa';
+import { FaCheckCircle, FaExclamationCircle, FaRocket, FaCogs, FaUsers, FaShieldAlt } from 'react-icons/fa';
 
 interface FormErrors {
   name?: string;
