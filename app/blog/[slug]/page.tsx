@@ -34,12 +34,12 @@ The future of enterprise AI is bright, with continued innovations in natural lan
     `,
     author: "Dr. Sarah Chen",
     authorBio: "AI Research Director at Apex Labs with over 15 years of experience in enterprise AI solutions.",
-    authorImage: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80",
+    authorImage: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&amp;fit=crop&amp;q=80",
     date: "2024-03-15",
     readTime: "8 min read",
     category: "Artificial Intelligence",
     tags: ["AI", "Enterprise", "Digital Transformation"],
-    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&amp;fit=crop&amp;q=80",
     featured: true
   },
   {
@@ -50,7 +50,7 @@ The future of enterprise AI is bright, with continued innovations in natural lan
     content: `
 # Building for Scale and Resilience
 
-In today's digital-first world, building resilient infrastructure is more critical than ever. Here's a comprehensive guide to creating systems that can withstand modern challenges:
+In today&apos;s digital-first world, building resilient infrastructure is more critical than ever. Here&apos;s a comprehensive guide to creating systems that can withstand modern challenges:
 
 # 1. Distributed Systems Architecture
 Modern infrastructure needs to be distributed across multiple regions and availability zones to ensure high availability and fault tolerance.
@@ -69,12 +69,12 @@ Implementing comprehensive monitoring solutions to detect and respond to issues 
     `,
     author: "Michael Rodriguez",
     authorBio: "Infrastructure Architect at Apex Labs specializing in cloud-native solutions and distributed systems.",
-    authorImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80",
+    authorImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&amp;fit=crop&amp;q=80",
     date: "2024-03-10",
     readTime: "12 min read",
     category: "Infrastructure",
     tags: ["Cloud Computing", "DevOps", "Security"],
-    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&amp;fit=crop&amp;q=80",
     featured: true
   },
   {
@@ -85,7 +85,7 @@ Implementing comprehensive monitoring solutions to detect and respond to issues 
     content: `
 # Protecting Your Digital Assets
 
-As cyber threats continue to evolve, organizations must adapt their security practices. Here's what you need to know:
+As cyber threats continue to evolve, organizations must adapt their security practices. Here&apos;s what you need to know:
 
 # 1. Zero Trust Architecture
 Implementing a zero trust security model where nothing is automatically trusted, and everything must be verified.
@@ -104,12 +104,12 @@ Conducting regular security assessments and penetration testing to identify and 
     `,
     author: "Alex Thompson",
     authorBio: "Senior Security Consultant at Apex Labs with expertise in cybersecurity and risk management.",
-    authorImage: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80",
+    authorImage: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&amp;fit=crop&amp;q=80",
     date: "2024-03-05",
     readTime: "10 min read",
     category: "Cybersecurity",
     tags: ["Security", "Risk Management", "Compliance"],
-    image: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&q=80"
+    image: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&amp;fit=crop&amp;q=80"
   },
   {
     id: 4,
@@ -119,7 +119,7 @@ Conducting regular security assessments and penetration testing to identify and 
     content: `
 # Learning from Success
 
-Digital transformation has become essential for business survival. Here are key lessons from successful transformations:
+Digital transformation has become essential for business survival. Here&apos;s key lessons from successful transformations:
 
 # 1. Cultural Change
 Successful digital transformation starts with a culture that embraces change and innovation.
@@ -138,12 +138,12 @@ Choosing the right technology stack that aligns with business goals and scalabil
     `,
     author: "Emma Davis",
     authorBio: "Digital Transformation Lead at Apex Labs helping organizations navigate their digital journey.",
-    authorImage: "https://images.unsplash.com/photo-1598550874175-4d0ef436c909?auto=format&fit=crop&q=80",
+    authorImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&amp;fit=crop&amp;q=80",
     date: "2024-03-01",
     readTime: "15 min read",
     category: "Digital Transformation",
     tags: ["Case Studies", "Innovation", "Strategy"],
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80"
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&amp;fit=crop&amp;q=80"
   }
 ];
 

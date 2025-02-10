@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FaCalendar, FaUser, FaTags, FaClock, FaArrowRight } from 'react-icons/fa';
+import { FaCalendar, FaClock, FaArrowRight } from 'react-icons/fa';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -14,12 +14,12 @@ const blogPosts = [
     excerpt: "Explore the emerging trends and transformative potential of AI in enterprise environments, from automated decision-making to intelligent process optimization.",
     content: "Artificial Intelligence continues to reshape the enterprise landscape...",
     author: "Dr. Sarah Chen",
-    authorImage: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80",
+    authorImage: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&amp;fit=crop&amp;q=80",
     date: "2024-03-15",
     readTime: "8 min read",
     category: "Artificial Intelligence",
     tags: ["AI", "Enterprise", "Digital Transformation"],
-    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&amp;fit=crop&amp;q=80",
     featured: true
   },
   {
@@ -27,14 +27,14 @@ const blogPosts = [
     title: "Building Resilient Digital Infrastructure: A Complete Guide",
     slug: "building-resilient-digital-infrastructure",
     excerpt: "Learn the key principles and best practices for creating robust, scalable digital infrastructure that can withstand modern challenges.",
-    content: "In today's rapidly evolving digital landscape...",
+    content: "In today&apos;s rapidly evolving digital landscape...",
     author: "Michael Rodriguez",
-    authorImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80",
+    authorImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&amp;fit=crop&amp;q=80",
     date: "2024-03-10",
     readTime: "12 min read",
     category: "Infrastructure",
     tags: ["Cloud Computing", "DevOps", "Security"],
-    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&amp;fit=crop&amp;q=80",
     featured: true
   },
   {
@@ -44,12 +44,12 @@ const blogPosts = [
     excerpt: "Discover essential cybersecurity strategies and tools to protect your business in an increasingly complex threat landscape.",
     content: "As cyber threats continue to evolve...",
     author: "Alex Thompson",
-    authorImage: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80",
+    authorImage: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&amp;fit=crop&amp;q=80",
     date: "2024-03-05",
     readTime: "10 min read",
     category: "Cybersecurity",
     tags: ["Security", "Risk Management", "Compliance"],
-    image: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&q=80"
+    image: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&amp;fit=crop&amp;q=80"
   },
   {
     id: 4,
@@ -58,12 +58,12 @@ const blogPosts = [
     excerpt: "Real-world examples of successful digital transformation initiatives and key insights for your own journey.",
     content: "Digital transformation has become...",
     author: "Emma Davis",
-    authorImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80",
+    authorImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&amp;fit=crop&amp;q=80",
     date: "2024-03-01",
     readTime: "15 min read",
     category: "Digital Transformation",
     tags: ["Case Studies", "Innovation", "Strategy"],
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80"
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&amp;fit=crop&amp;q=80"
   }
 ];
 
@@ -102,7 +102,7 @@ export default function Blog() {
             className="text-center"
           >
             <h1 className="text-4xl font-extrabold text-gray-900 dark:text-dark-text sm:text-5xl lg:text-6xl">
-              Insights & 
+              Insights &amp; 
               <span className="block mt-2 bg-gradient-to-r from-primary-600 to-blue-600 dark:from-primary-400 dark:to-blue-400 bg-clip-text text-transparent">
                 Perspectives
               </span>
