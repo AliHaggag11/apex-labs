@@ -282,7 +282,7 @@ export default function Blog() {
                 Subscribe to our newsletter for the latest insights and articles.
               </p>
               <form className="max-w-md mx-auto">
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <input
                     type="email"
                     placeholder="Enter your email"
@@ -290,7 +290,7 @@ export default function Blog() {
                   />
                   <button
                     type="submit"
-                    className="px-6 py-3 bg-primary-600 dark:bg-primary-500 text-white rounded-xl hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors duration-200"
+                    className="w-full sm:w-auto px-6 py-3 bg-primary-600 dark:bg-primary-500 text-white rounded-xl hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors duration-200"
                   >
                     Subscribe
                   </button>
