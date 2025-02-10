@@ -54,7 +54,6 @@ const Navbar = () => {
                 <div className="flex items-center space-x-8">
                   <NavLink href="/services">Services</NavLink>
                   <NavLink href="/ai-automation">AI Automation</NavLink>
-                  <NavLink href="/solutions">Solutions</NavLink>
                   <NavLink href="/pricing">Pricing</NavLink>
                   <NavLink href="/case-studies">Case Studies</NavLink>
                   <NavLink href="/blog">Blog</NavLink>
@@ -114,7 +113,6 @@ const Navbar = () => {
                     {[
                       { href: '/services', label: 'Services' },
                       { href: '/ai-automation', label: 'AI Automation' },
-                      { href: '/solutions', label: 'Solutions' },
                       { href: '/pricing', label: 'Pricing' },
                       { href: '/case-studies', label: 'Case Studies' },
                       { href: '/blog', label: 'Blog' },
