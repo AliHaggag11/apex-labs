@@ -159,7 +159,7 @@ export default function BlogPost() {
             Post Not Found
           </h1>
           <p className="text-gray-600 dark:text-dark-muted mb-8">
-            The blog post you're looking for doesn't exist.
+            The blog post you&#39;re looking for doesn&#39;t exist.
           </p>
           <Link
             href="/blog"
