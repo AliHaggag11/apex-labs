@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { FaCube, FaTwitter, FaLinkedin, FaGithub, FaEnvelope } from 'react-icons/fa';
+import { FaFlask, FaTwitter, FaLinkedin, FaGithub, FaEnvelope } from 'react-icons/fa';
 import { useState } from 'react';
 
 const Footer = () => {
@@ -57,10 +57,10 @@ const Footer = () => {
           {/* Brand and Newsletter */}
           <div className="lg:col-span-2 space-y-8">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-blue-500 dark:from-primary-400 dark:to-blue-400 flex items-center justify-center text-white shadow-lg shadow-primary-600/20 dark:shadow-primary-400/20">
-                <FaCube className="w-5 h-5" />
+              <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-blue-600 dark:from-primary-400 dark:to-blue-500">
+                <FaFlask className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-blue-500 dark:from-primary-400 dark:to-blue-400 bg-clip-text text-transparent">
+              <span className="text-xl font-bold text-gray-900 dark:text-dark-text">
                 Apex Labs
               </span>
             </Link>
