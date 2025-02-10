@@ -1,13 +1,25 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ThemeToggle } from './ThemeToggle';
 import { FaBars, FaTimes, FaFlask } from 'react-icons/fa';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+
+  // Add effect to control body scroll
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   return (
     <>
@@ -77,23 +89,28 @@ const Navbar = () => {
           </div>
         </motion.nav>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Overlay */}
         <AnimatePresence>
           {isOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 top-20 bg-white dark:bg-dark-card backdrop-blur-lg"
-            >
+            <>
+              {/* Blur Overlay */}
               <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 20, opacity: 0 }}
-                className="h-[calc(100vh-5rem)] flex flex-col justify-between"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 top-20 bg-white/30 dark:bg-black/30 backdrop-blur-sm z-40"
+                onClick={() => setIsOpen(false)}
+              />
+              
+              {/* Menu Content */}
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="fixed inset-x-0 top-20 bg-white/80 dark:bg-dark-card/80 backdrop-blur-md shadow-lg z-50 max-h-[min(420px,70vh)] overflow-y-auto"
               >
-                <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full">
-                  <div className="space-y-6">
+                <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 w-full">
+                  <div className="space-y-1">
                     {[
                       { href: '/services', label: 'Services' },
                       { href: '/ai-automation', label: 'AI Automation' },
@@ -108,25 +125,23 @@ const Navbar = () => {
                       </MobileNavLink>
                     ))}
                   </div>
-                </div>
 
-                <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full border-t border-gray-200/10 dark:border-dark-border/10 space-y-6">
-                  <motion.a
-                    whileTap={{ scale: 0.95 }}
-                    href="#contact"
-                    onClick={() => setIsOpen(false)}
-                    className="block w-full text-center bg-gradient-to-r from-primary-600 to-blue-500 dark:from-primary-500 dark:to-blue-500 text-white px-6 py-4 rounded-xl text-lg font-medium hover:shadow-lg hover:shadow-primary-600/20 dark:hover:shadow-primary-500/20 transition-all"
-                  >
-                    Contact Us
-                  </motion.a>
-                  
-                  <div className="flex items-center justify-between px-4">
-                    <span className="text-base text-gray-600 dark:text-dark-muted font-medium">Switch Theme</span>
-                    <ThemeToggle />
+                  <div className="mt-4 pt-4 border-t border-gray-200/20 dark:border-dark-border/20 flex items-center justify-between">
+                    <motion.a
+                      whileTap={{ scale: 0.95 }}
+                      href="#contact"
+                      onClick={() => setIsOpen(false)}
+                      className="flex-1 text-center bg-gradient-to-r from-primary-600 to-blue-500 dark:from-primary-500 dark:to-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:shadow-lg hover:shadow-primary-600/20 dark:hover:shadow-primary-500/20 transition-all"
+                    >
+                      Contact Us
+                    </motion.a>
+                    <div className="flex items-center ml-4 pl-4 border-l border-gray-200/20 dark:border-dark-border/20">
+                      <ThemeToggle />
+                    </div>
                   </div>
                 </div>
               </motion.div>
-            </motion.div>
+            </>
           )}
         </AnimatePresence>
       </div>
@@ -150,11 +165,11 @@ const NavLink = ({ href, children }: { href: string; children: React.ReactNode }
 const MobileNavLink = ({ href, onClick, children }: { href: string; onClick: () => void; children: React.ReactNode }) => (
   <Link href={href}>
     <motion.div
-      className="block text-gray-800 dark:text-white text-lg font-medium cursor-pointer transition-colors"
-      whileTap={{ scale: 0.95 }}
+      className="block text-gray-800 dark:text-white text-base font-medium cursor-pointer transition-colors"
+      whileTap={{ scale: 0.98 }}
       onClick={onClick}
     >
-      <div className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-dark-border/50">
+      <div className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-border/50">
         <span>{children}</span>
         <motion.span
           className="text-primary-600 dark:text-primary-400"
