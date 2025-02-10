@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FaCalendar, FaUser, FaTags, FaClock, FaLinkedin, FaTwitter, FaFacebook } from 'react-icons/fa';
+import { FaCalendar, FaTags, FaClock, FaLinkedin, FaTwitter, FaFacebook } from 'react-icons/fa';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
