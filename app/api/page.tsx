@@ -86,7 +86,7 @@ export default function APIReference() {
       <div className="prose dark:prose-invert max-w-none">
         <h2>Quick Example</h2>
         <p>
-          Here's a simple example of how to create a new project using our API:
+          Here&apos;s a simple example of how to create a new project using our API:
         </p>
         <pre className="p-4 bg-gray-900 text-gray-100 rounded-xl overflow-x-auto">
           <code>{codeExample}</code>
