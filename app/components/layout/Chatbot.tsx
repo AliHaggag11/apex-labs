@@ -4,13 +4,26 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaRobot, FaTimes, FaPaperPlane } from 'react-icons/fa';
 
+// Context about the company and its services
+const SYSTEM_CONTEXT = `You are an AI assistant for Apex Labs, a company specializing in digital transformation and AI solutions. 
+Key services include:
+- IT Infrastructure & Cloud: Cloud migration, hybrid deployment, VPN, cybersecurity, and disaster recovery
+- Business Process Automation: ERP, CRM, HR automation, e-signatures, automated support
+- E-Commerce Solutions: Custom online stores, digital payments, POS systems
+- Digital Marketing: SEO, AI-driven marketing, automated campaigns
+- Data Management: AI-based market research, BI dashboards, data digitization
+- Industry Solutions: Specialized solutions for retail, healthcare, finance, legal, manufacturing
+
+Your role is to help visitors understand our services and guide them to the right solutions.`;
+
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [messages, setMessages] = useState<Array<{ text: string; isUser: boolean }>>([
-    { text: "Hi! Im your AI assistant. How can I help you today?", isUser: false }
+    { text: "Hi! I'm your AI assistant from Apex Labs. How can I help you with your digital transformation journey today?", isUser: false }
   ]);
   const [inputText, setInputText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Handle mobile detection
   useEffect(() => {
@@ -23,20 +36,45 @@ export default function Chatbot() {
   }, []);
 
   const handleSendMessage = async () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || isLoading) return;
 
     // Add user message
     setMessages(prev => [...prev, { text: inputText, isUser: true }]);
+    setIsLoading(true);
 
-    // Mock AI response
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: SYSTEM_CONTEXT },
+            ...messages.map(msg => ({
+              role: msg.isUser ? 'user' : 'assistant',
+              content: msg.text
+            })),
+            { role: 'user', content: inputText }
+          ]
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
+      setMessages(prev => [...prev, { text: data.response, isUser: false }]);
+    } catch (error) {
       setMessages(prev => [...prev, {
-        text: "Thanks for your message! This is a mock response. In a real implementation, this would be connected to an AI service.",
+        text: "I apologize, but I'm having trouble connecting right now. Please try again later or contact our support team.",
         isUser: false
       }]);
-    }, 1000);
-
-    setInputText('');
+    } finally {
+      setIsLoading(false);
+      setInputText('');
+    }
   };
 
   // Button animation variants
@@ -133,6 +171,21 @@ export default function Chatbot() {
                   </div>
                 </motion.div>
               ))}
+              {isLoading && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex justify-start"
+                >
+                  <div className="max-w-[80%] p-3 rounded-lg shadow-sm bg-gray-100 dark:bg-dark-bg text-gray-800 dark:text-dark-text rounded-bl-none">
+                    <div className="flex space-x-2">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </div>
 
             {/* Input */}
@@ -144,13 +197,15 @@ export default function Chatbot() {
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                   placeholder="Type your message..."
-                  className="flex-1 p-2 border dark:border-dark-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 dark:bg-dark-bg dark:text-dark-text"
+                  disabled={isLoading}
+                  className="flex-1 p-2 border dark:border-dark-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 dark:bg-dark-bg dark:text-dark-text disabled:opacity-50"
                 />
                 <motion.button
                   onClick={handleSendMessage}
+                  disabled={isLoading}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="p-2 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-lg hover:shadow-md transition-shadow"
+                  className="p-2 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-lg hover:shadow-md transition-shadow disabled:opacity-50"
                 >
                   <FaPaperPlane />
                 </motion.button>
