@@ -3,8 +3,8 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { 
-  FaLightbulb, FaRocket, FaHandshake, FaChartLine,
-  FaCogs, FaUsers, FaCheckCircle, FaStar
+  FaLightbulb, FaHandshake, FaChartLine,
+  FaCogs, FaCheckCircle, FaStar
 } from 'react-icons/fa';
 
 const missionVision = {

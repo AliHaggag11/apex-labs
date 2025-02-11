@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { FaBars, FaTimes, FaCode, FaKey, FaServer, FaDatabase, FaExchangeAlt } from 'react-icons/fa';
+import { FaBars, FaTimes, FaCode, FaServer, FaDatabase, FaExchangeAlt } from 'react-icons/fa';
 import NoFooterWrapper from '../components/layout/NoFooterWrapper';
 
 const sidebarLinks = [

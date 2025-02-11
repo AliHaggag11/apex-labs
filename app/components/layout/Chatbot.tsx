@@ -8,7 +8,7 @@ export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [messages, setMessages] = useState<Array<{ text: string; isUser: boolean }>>([
-    { text: "Hi! I'm your AI assistant. How can I help you today?", isUser: false }
+    { text: "Hi! I&apos;m your AI assistant. How can I help you today?", isUser: false }
   ]);
   const [inputText, setInputText] = useState('');
 
@@ -83,11 +83,16 @@ export default function Chatbot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className={`${
-              isMobile 
-                ? 'fixed left-0 right-0 top-0 bottom-20 m-4' 
-                : 'absolute bottom-20 right-0 w-96 h-[500px]'
-            } bg-white dark:bg-dark-card rounded-lg shadow-xl flex flex-col overflow-hidden`}
+            style={{ 
+              position: isMobile ? 'fixed' : 'absolute',
+              left: isMobile ? '1rem' : 'auto',
+              right: isMobile ? '1rem' : '0',
+              top: isMobile ? '1rem' : 'auto',
+              bottom: isMobile ? '5rem' : '5rem',
+              width: isMobile ? 'auto' : '24rem',
+              height: isMobile ? 'calc(100vh - 6rem)' : '500px'
+            }}
+            className="bg-white dark:bg-dark-card rounded-lg shadow-xl flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="p-4 bg-gradient-to-r from-primary-600 to-primary-500 text-white">
