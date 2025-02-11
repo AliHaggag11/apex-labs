@@ -78,7 +78,7 @@ export default function Documentation() {
       <div className="prose dark:prose-invert max-w-none">
         <h2>Getting Started</h2>
         <p>
-          Welcome to the Apex Labs documentation! Here you'll find comprehensive guides and documentation to help you start working with our platform as quickly as possible, as well as support if you get stuck.
+          Welcome to the Apex Labs documentation! Here you&apos;ll find comprehensive guides and documentation to help you start working with our platform as quickly as possible, as well as support if you get stuck.
         </p>
 
         <h3>What is Apex Labs?</h3>
@@ -87,10 +87,10 @@ export default function Documentation() {
         </p>
         <ul>
           <li>Digital Transformation</li>
-          <li>AI & Automation Solutions</li>
+          <li>AI &amp; Automation Solutions</li>
           <li>Custom Software Development</li>
           <li>Cloud Infrastructure Management</li>
-          <li>Data Analytics & Insights</li>
+          <li>Data Analytics &amp; Insights</li>
         </ul>
 
         <h3>Prerequisites</h3>

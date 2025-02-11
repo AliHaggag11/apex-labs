@@ -8,7 +8,7 @@ export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [messages, setMessages] = useState<Array<{ text: string; isUser: boolean }>>([
-    { text: "Hi! Im your AI assistant. How can I help you today?", isUser: false }
+    { text: "Hi! I&apos;m your AI assistant. How can I help you today?", isUser: false }
   ]);
   const [inputText, setInputText] = useState('');
 

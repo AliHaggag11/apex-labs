@@ -26,12 +26,12 @@ const features = [
 ];
 
 const codeExample = `curl -X POST https://api.apexlabs.ai/v1/projects \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "name": "My Project",
-    "description": "A test project"
-  }'`;
+  -H &quot;Authorization: Bearer YOUR_API_KEY&quot; \\
+  -H &quot;Content-Type: application/json&quot; \\
+  -d &apos;{
+    &quot;name&quot;: &quot;My Project&quot;,
+    &quot;description&quot;: &quot;A test project&quot;
+  }&apos;`;
 
 export default function APIReference() {
   return (
