@@ -25,7 +25,9 @@ export default function RootLayout({
         <Providers>
           <Navbar />
           {children}
-          <Footer />
+          <div className="footer-wrapper">
+            <Footer />
+          </div>
         </Providers>
       </body>
     </html>

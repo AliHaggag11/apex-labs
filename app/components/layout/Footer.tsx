@@ -4,10 +4,14 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { FaFlask, FaTwitter, FaLinkedin, FaGithub, FaEnvelope } from 'react-icons/fa';
 import { useState } from 'react';
+import PrivacyPolicy from '../legal/PrivacyPolicy';
+import TermsOfService from '../legal/TermsOfService';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,17 +154,27 @@ const Footer = () => {
             <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-8 text-sm text-gray-600 dark:text-dark-muted">
               <span>© 2024 Apex Labs. All rights reserved.</span>
               <div className="flex items-center space-x-8">
-                <Link href="/privacy" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                <button
+                  onClick={() => setIsPrivacyOpen(true)}
+                  className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                >
                   Privacy Policy
-                </Link>
-                <Link href="/terms" className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                </button>
+                <button
+                  onClick={() => setIsTermsOpen(true)}
+                  className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                >
                   Terms of Service
-                </Link>
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <PrivacyPolicy isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
+      <TermsOfService isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
     </footer>
   );
 };
