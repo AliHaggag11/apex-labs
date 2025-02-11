@@ -2,8 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import Image from 'next/image';
-import { FaDownload, FaNewspaper, FaImage, FaFileAlt, FaEnvelope, FaTwitter, FaLinkedin } from 'react-icons/fa';
+import { FaDownload, FaEnvelope, FaTwitter, FaLinkedin } from 'react-icons/fa';
 
 const companyInfo = {
   founded: '2020',

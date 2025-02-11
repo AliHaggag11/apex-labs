@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Providers } from "./providers";
 import Footer from "./components/layout/Footer";
 import Navbar from "./components/layout/Navbar";
+import Chatbot from "./components/layout/Chatbot";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({
           <div className="footer-wrapper">
             <Footer />
           </div>
+          <Chatbot />
         </Providers>
       </body>
     </html>
