@@ -1,46 +1,111 @@
 import { NextResponse } from 'next/server';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Hugging Face API endpoint for text generation
-const API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-xxl";
+// Initialize Gemini API
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+
+// Map of topics to their corresponding routes
+const routeMap: { [key: string]: string } = {
+  'pricing': '/pricing',
+  'services': '/services',
+  'contact': '/contact',
+  'about': '/about',
+  'case studies': '/case-studies',
+  'case-studies': '/case-studies',
+  'blog': '/blog'
+};
+
+// Function to detect and format page links
+const addPageLinks = (text: string) => {
+  let result = text;
+  const addedLinks = new Set<string>();
+  
+  // Replace "[Insert X page link here]" patterns
+  result = result.replace(/\[Insert ([^\]]+) link here\]/gi, (match, pageName) => {
+    const pageKey = pageName.toLowerCase().replace(' page', '').trim();
+    const route = routeMap[pageKey];
+    if (route && !addedLinks.has(route)) {
+      addedLinks.add(route);
+      return `<link href="${route}">${pageName}</link>`;
+    }
+    return match;
+  });
+
+  // Add links for common page references
+  Object.entries(routeMap).forEach(([key, route]) => {
+    if (!addedLinks.has(route)) {
+      const regex = new RegExp(`(our\\s+${key}\\s+page|the\\s+${key}\\s+page|${key}\\s+page)`, 'gi');
+      let hasReplaced = false;
+      result = result.replace(regex, (match) => {
+        if (!hasReplaced) {
+          hasReplaced = true;
+          addedLinks.add(route);
+          return `<link href="${route}">${match}</link>`;
+        }
+        return match;
+      });
+    }
+  });
+
+  return result;
+};
+
+// Function to clean and format markdown
+const cleanMarkdown = (text: string) => {
+  // Remove duplicate lines
+  const uniqueLines = new Set();
+  const lines = text.split('\n').filter(line => {
+    const trimmedLine = line.trim();
+    if (!trimmedLine || uniqueLines.has(trimmedLine)) return false;
+    uniqueLines.add(trimmedLine);
+    return true;
+  });
+
+  // Rejoin lines and split into sections
+  const sections = lines.join('\n').split(/(?=\n[A-Z][^a-z\n:]{2,})/);
+  
+  return sections
+    .map(section => {
+      return section
+        .replace(/\*\*/g, '') // Remove bold markdown
+        .replace(/\*/g, '')   // Remove italic markdown
+        .replace(/`/g, '')    // Remove code markdown
+        .replace(/#{1,6}\s/g, '') // Remove heading markdown
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Clean links to just text
+        .replace(/[-•]\s+([^\n]+)/g, '\n• $1') // Format bullet points with line breaks
+        .trim(); // Remove leading/trailing whitespace
+    })
+    .filter(Boolean) // Remove empty sections
+    .join('\n\n')
+    .replace(/\n{3,}/g, '\n\n') // Remove excessive line breaks
+    .trim();
+};
 
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
+    
+    // Get the model
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-    // Combine messages into a single prompt
-    const prompt = messages.map((msg: any) => {
-      if (msg.role === 'system') {
-        return `Instructions: ${msg.content}\n`;
-      }
-      return `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}\n`;
-    }).join('');
+    // Prepare the message with context
+    const systemContext = messages.find((msg: any) => msg.role === 'system')?.content || '';
+    const userMessage = messages[messages.length - 1].content;
+    const messageWithContext = `${systemContext}
 
-    // Call Hugging Face API
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        inputs: prompt,
-        parameters: {
-          max_length: 500,
-          temperature: 0.7,
-          top_p: 0.9,
-          do_sample: true,
-        },
-      }),
-    });
+User message: ${userMessage}
 
-    if (!response.ok) {
-      throw new Error('Failed to get response from Hugging Face API');
-    }
+Please format your response in clear sections with proper line breaks and bullet points. Keep your response concise and avoid repeating information. When suggesting a page to visit, use the exact format "Visit our [pagename] page" or "Learn more on our [pagename] page". Remember to suggest the most relevant page first and only suggest each page once.`;
 
-    const result = await response.json();
-    const aiResponse = result[0].generated_text;
-
-    return NextResponse.json({ response: aiResponse });
+    // Generate response
+    const result = await model.generateContent(messageWithContext);
+    const response = await result.response;
+    
+    // Clean markdown and add page links
+    const cleanedResponse = cleanMarkdown(response.text());
+    const responseWithLinks = addPageLinks(cleanedResponse);
+    
+    return NextResponse.json({ response: responseWithLinks });
   } catch (error) {
     console.error('Error in chat API:', error);
     return NextResponse.json(
