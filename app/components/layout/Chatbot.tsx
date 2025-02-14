@@ -342,8 +342,8 @@ const handleSpeechError = (error: string): string => {
   }
 };
 
-// Fix TypeScript errors and unused variables
-const MessageText = ({ text }: { text: string }) => {
+// Update the MessageText component to handle mobile link clicks
+const MessageText = ({ text, onLinkClick }: { text: string; onLinkClick?: () => void }) => {
   const router = useRouter();
   
   const parts = text.split(/(<link[^>]*>.*?<\/link>)/);
@@ -363,6 +363,9 @@ const MessageText = ({ text }: { text: string }) => {
               onClick={(e) => {
                 e.preventDefault();
                 router.push(href);
+                if (onLinkClick) {
+                  onLinkClick();
+                }
               }}
             >
               {linkText}
@@ -526,7 +529,7 @@ const LocationCard = ({ location }: { location: Location }) => (
   </div>
 );
 
-// Update the Message component to handle location
+// Update the Message component to pass the onLinkClick handler
 const Message = ({ 
   message: messageWithLocation, 
   isLast,
@@ -534,7 +537,8 @@ const Message = ({
   onThreadReply,
   thread,
   showThreads = true,
-  parentMessage
+  parentMessage,
+  onLinkClick
 }: { 
   message: MessageWithLocation; 
   isLast: boolean;
@@ -543,6 +547,7 @@ const Message = ({
   thread?: Thread;
   showThreads?: boolean;
   parentMessage?: Message;
+  onLinkClick?: () => void;
 }) => {
   const [isThreadExpanded, setIsThreadExpanded] = useState(false);
   const suggestions = !messageWithLocation.isUser && isLast ? getQuickReplies(messageWithLocation.text) : [];
@@ -580,7 +585,7 @@ const Message = ({
                 ' shadow-sm dark:shadow-none'
           }`}
         >
-          <MessageText text={messageWithLocation.text} />
+          <MessageText text={messageWithLocation.text} onLinkClick={onLinkClick} />
           {messageWithLocation.location && (
             <div className="mt-3">
               <LocationCard location={messageWithLocation.location} />
@@ -646,6 +651,7 @@ const Message = ({
               onThreadReply={onThreadReply}
               showThreads={false}
               parentMessage={messageWithLocation}
+              onLinkClick={onLinkClick}
             />
           ))}
         </motion.div>
@@ -855,6 +861,7 @@ export default function Chatbot() {
   const [isListening, setIsListening] = useState(false);
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [voiceError, setVoiceError] = useState<string | undefined>(undefined);
+  const chatWindowRef = useRef<HTMLDivElement>(null);
 
   const scrollToMessage = () => {
     if (lastMessageRef.current) {
@@ -1122,6 +1129,23 @@ export default function Chatbot() {
     tap: { scale: 0.9 }
   };
 
+  // Add click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (chatWindowRef.current && !chatWindowRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
   // Update the main messages rendering in Chatbot component
   const renderMessages = () => (
     <div 
@@ -1222,6 +1246,7 @@ export default function Chatbot() {
               onThreadReply={handleThreadReply}
               thread={thread}
               parentMessage={parentMessage}
+              onLinkClick={isMobile ? () => setIsOpen(false) : undefined}
             />
           </motion.div>
         );
@@ -1536,6 +1561,7 @@ export default function Chatbot() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            ref={chatWindowRef}
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
