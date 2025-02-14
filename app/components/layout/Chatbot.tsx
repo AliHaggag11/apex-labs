@@ -435,7 +435,7 @@ const getQuickReplies = (lastMessage: string) => {
     return [
       { text: 'Tell me about your services', icon: <FaInfoCircle className="w-4 h-4" /> },
       { text: 'How much do you charge?', icon: <FaDollarSign className="w-4 h-4" /> },
-      { text: 'I need technical support', icon: <FaHeadset className="w-4 h-4" /> },
+      { text: 'Schedule a call', icon: <FaClock className="w-4 h-4" /> },
     ];
   }
   
@@ -448,8 +448,8 @@ const getQuickReplies = (lastMessage: string) => {
   
   if (lowerMessage.includes('contact') || lowerMessage.includes('support') || lowerMessage.includes('help')) {
     return [
-      { text: 'Email support', icon: <FaHeadset className="w-4 h-4" /> },
       { text: 'Schedule a call', icon: <FaClock className="w-4 h-4" /> },
+      { text: 'Email support', icon: <FaHeadset className="w-4 h-4" /> },
       { text: 'Visit office', icon: <FaInfoCircle className="w-4 h-4" /> },
     ];
   }
@@ -495,6 +495,7 @@ interface Location {
 interface MessageWithLocation extends Message {
   location?: Location;
   showCalculator?: boolean;
+  showScheduler?: boolean;
 }
 
 // Add the LocationCard component before the Message component
@@ -645,6 +646,110 @@ const MiniPriceCalculator = ({
   );
 };
 
+// Add the ScheduleCall component after the MiniPriceCalculator component
+const ScheduleCall = ({ 
+  onSchedule 
+}: { 
+  onSchedule: (details: { name: string; email: string; date: string; time: string; topic: string }) => void 
+}) => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [topic, setTopic] = useState('');
+
+  const handleSubmit = () => {
+    if (!name || !email || !date || !time || !topic) return;
+    
+    onSchedule({ name, email, date, time, topic });
+  };
+
+  // Get tomorrow's date as the minimum selectable date
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().split('T')[0];
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 space-y-4 text-sm">
+      <div>
+        <label className="block text-gray-700 dark:text-gray-300 mb-2">Your Name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full p-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
+          placeholder="John Doe"
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
+          placeholder="john@example.com"
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 dark:text-gray-300 mb-2">Preferred Date</label>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          min={minDate}
+          className="w-full p-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 dark:text-gray-300 mb-2">Preferred Time (EET)</label>
+        <select
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          className="w-full p-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
+        >
+          <option value="">Select a time</option>
+          <option value="09:00">09:00 AM</option>
+          <option value="10:00">10:00 AM</option>
+          <option value="11:00">11:00 AM</option>
+          <option value="12:00">12:00 PM</option>
+          <option value="13:00">01:00 PM</option>
+          <option value="14:00">02:00 PM</option>
+          <option value="15:00">03:00 PM</option>
+          <option value="16:00">04:00 PM</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-gray-700 dark:text-gray-300 mb-2">Discussion Topic</label>
+        <select
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          className="w-full p-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
+        >
+          <option value="">Select a topic</option>
+          <option value="Digital Transformation">Digital Transformation</option>
+          <option value="Cloud Solutions">Cloud Solutions</option>
+          <option value="AI Implementation">AI Implementation</option>
+          <option value="Business Automation">Business Automation</option>
+          <option value="Custom Solutions">Custom Solutions</option>
+        </select>
+      </div>
+
+      <button
+        onClick={handleSubmit}
+        disabled={!name || !email || !date || !time || !topic}
+        className="w-full py-2 px-4 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg transition-colors"
+      >
+        Schedule Call
+      </button>
+    </div>
+  );
+};
+
 // Add ChatContext definition after imports and before other interfaces
 interface ChatContextType {
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
@@ -681,6 +786,24 @@ const Message = ({
     onQuickReply(text);
   };
   
+  const handleSchedule = (details: { name: string; email: string; date: string; time: string; topic: string }) => {
+    const confirmationMessage: MessageWithLocation = {
+      id: generateId(),
+      text: `Great! I've scheduled a call for you:\n\n` +
+            `• Name: ${details.name}\n` +
+            `• Date: ${details.date}\n` +
+            `• Time: ${details.time} EET\n` +
+            `• Topic: ${details.topic}\n\n` +
+            `You'll receive a confirmation email at ${details.email} with the meeting details and a calendar invite. Our team is looking forward to speaking with you!`,
+      isUser: false,
+      timestamp: new Date(),
+      contextTags: ['scheduling'],
+      replyCount: 0
+    };
+    
+    setMessages(prev => [...prev, confirmationMessage]);
+  };
+
   return (
     <div className={`flex flex-col ${messageWithLocation.isUser ? 'items-end' : 'items-start'} space-y-2 w-full max-w-[85%]`}>
       <div className={`w-full px-4 py-3 ${
@@ -697,30 +820,34 @@ const Message = ({
             <LocationCard location={messageWithLocation.location} />
           </div>
         )}
+        {messageWithLocation.showCalculator && (
+          <div className="mt-4 w-full">
+            <MiniPriceCalculator 
+              onEstimate={(estimate: PriceEstimate) => {
+                const responseMessage: MessageWithLocation = {
+                  id: generateId(),
+                  text: `Based on your selections:\n\n` +
+                        `• Business Scale: ${estimate.businessScale}\n` +
+                        `• Complexity: ${estimate.complexity}\n` +
+                        `• Services: ${estimate.services.join(', ')}\n\n` +
+                        `Estimated Cost Range: $${(estimate.estimate * 0.8).toLocaleString()} - $${(estimate.estimate * 1.2).toLocaleString()}\n\n` +
+                        `Please note that this is a rough estimate. For a more accurate quote tailored to your specific needs, I recommend scheduling a consultation through our contact page.`,
+                  isUser: false,
+                  timestamp: new Date(),
+                  contextTags: ['pricing'],
+                  replyCount: 0
+                };
+                setMessages(prev => [...prev, responseMessage]);
+              }}
+            />
+          </div>
+        )}
+        {messageWithLocation.showScheduler && (
+          <div className="mt-4 w-full">
+            <ScheduleCall onSchedule={handleSchedule} />
+          </div>
+        )}
       </div>
-
-      {messageWithLocation.showCalculator && (
-        <div className="mt-4 w-full">
-          <MiniPriceCalculator 
-            onEstimate={(estimate: PriceEstimate) => {
-              const responseMessage: MessageWithLocation = {
-                id: generateId(),
-                text: `Based on your selections:\n\n` +
-                      `• Business Scale: ${estimate.businessScale}\n` +
-                      `• Complexity: ${estimate.complexity}\n` +
-                      `• Services: ${estimate.services.join(', ')}\n\n` +
-                      `Estimated Cost Range: $${(estimate.estimate * 0.8).toLocaleString()} - $${(estimate.estimate * 1.2).toLocaleString()}\n\n` +
-                      `Please note that this is a rough estimate. For a more accurate quote tailored to your specific needs, I recommend scheduling a consultation through our contact page.`,
-                isUser: false,
-                timestamp: new Date(),
-                contextTags: ['pricing'],
-                replyCount: 0
-              };
-              setMessages((prev: Message[]) => [...prev, responseMessage]);
-            }}
-          />
-        </div>
-      )}
 
       {/* Message Footer */}
       <div className="flex items-center space-x-2 text-xs text-gray-400 dark:text-gray-500 px-1">
@@ -931,25 +1058,18 @@ const generateId = (): string => {
   return Math.random().toString(36).substr(2, 9);
 };
 
-// Update the VoiceFeedback component with sound wave visualization
+// Update the VoiceFeedback component
 const VoiceFeedback = ({ error }: VoiceFeedbackProps) => (
-  <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: 10 }}
-    className={`absolute bottom-full mb-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 rounded-xl shadow-lg px-4 py-2 flex items-center space-x-2 ${
-      error ? 'border border-red-500' : ''
-    }`}
-  >
+  <div className={`flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center ${
+    error ? 'border border-red-500' : ''
+  }`}>
     {error ? (
-      <>
-        <motion.div
-          className={`w-2 h-2 rounded-full bg-red-500`}
-        />
+      <div className="flex items-center space-x-2 w-full">
+        <motion.div className="w-2 h-2 rounded-full bg-red-500" />
         <span className="text-sm text-red-500">{error}</span>
-      </>
+      </div>
     ) : (
-      <>
+      <div className="flex items-center space-x-2">
         <div className="flex items-center space-x-1">
           {[...Array(8)].map((_, i) => (
             <motion.div
@@ -968,9 +1088,9 @@ const VoiceFeedback = ({ error }: VoiceFeedbackProps) => (
           ))}
         </div>
         <span className="text-sm text-gray-600 dark:text-gray-300">Recording...</span>
-      </>
+      </div>
     )}
-  </motion.div>
+  </div>
 );
 
 // Update the Chatbot component to provide ChatContext
@@ -1119,6 +1239,26 @@ export default function Chatbot() {
     setIsLoading(true);
 
     try {
+      // Check if this is a scheduling request
+      const isSchedulingRequest = messageText.toLowerCase().match(/schedule|book|appointment|call|meeting|consultation/);
+      
+      if (isSchedulingRequest) {
+        const schedulerMessage: MessageWithLocation = {
+          id: generateId(),
+          text: "I'll help you schedule a call with our team. Please fill out the form below with your preferred date and time:",
+          isUser: false,
+          timestamp: new Date(),
+          threadId: activeThread,
+          contextTags: ['scheduling'],
+          replyCount: 0,
+          showScheduler: true
+        };
+        
+        setMessages(prev => [...prev, schedulerMessage]);
+        setIsLoading(false);
+        return;
+      }
+
       // Check if this is a pricing query
       const isPricingQuery = messageText.toLowerCase().match(/price|pricing|cost|quote|estimate|calculator|charge|how much/);
       
@@ -1358,92 +1498,54 @@ export default function Chatbot() {
           </button>
         </div>
       )}
-      <div className="flex space-x-2 relative">
-        <AnimatePresence>
-          {(isListening || voiceError) && (
-            <VoiceFeedback error={voiceError} />
-          )}
-        </AnimatePresence>
-        <input
-          type="text"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-          placeholder={
-            isListening 
-              ? 'Recording voice message...' 
-              : replyingTo 
+      <div className="flex space-x-2">
+        {isListening || voiceError ? (
+          <VoiceFeedback error={voiceError} />
+        ) : (
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            placeholder={
+              replyingTo 
                 ? 'Type your reply...' 
                 : languages[currentLang].placeholder
-          }
-          disabled={isLoading || isListening}
-          className={`flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 transition-all duration-200 ${
-            isListening ? 'pr-24' : ''
-          }`}
-        />
+            }
+            disabled={isLoading}
+            className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 transition-all duration-200"
+          />
+        )}
         {voiceSupported && (
-          <div className="relative">
-            <AnimatePresence>
-              {isListening && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute right-14 bottom-full mb-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg px-4 py-2"
-                >
-                  <div className="flex items-center space-x-2">
-                    <div className="flex items-center space-x-1">
-                      {[...Array(8)].map((_, i) => (
-                        <motion.div
-                          key={i}
-                          className="w-0.5 bg-primary-500"
-                          animate={{
-                            height: [8, 16, 24, 16, 8],
-                          }}
-                          transition={{
-                            duration: 1,
-                            repeat: Infinity,
-                            delay: i * 0.1,
-                            ease: "easeInOut"
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">Recording...</span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <motion.button
-              onClick={handleVoiceInput}
-              disabled={isLoading}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`p-3 rounded-xl transition-all duration-200 ${
-                isListening
-                  ? 'bg-red-500 hover:bg-red-600 shadow-lg ring-4 ring-red-500/20'
-                  : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
+          <motion.button
+            onClick={handleVoiceInput}
+            disabled={isLoading}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`p-3 rounded-xl transition-all duration-200 ${
+              isListening
+                ? 'bg-red-500 hover:bg-red-600 shadow-lg ring-4 ring-red-500/20'
+                : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
+          >
+            <motion.div
+              animate={isListening ? {
+                scale: [1, 1.2, 1],
+                rotate: [0, 10, -10, 0]
+              } : {}}
+              transition={{ 
+                repeat: Infinity, 
+                duration: 1.5,
+                ease: "easeInOut"
+              }}
             >
-              <motion.div
-                animate={isListening ? {
-                  scale: [1, 1.2, 1],
-                  rotate: [0, 10, -10, 0]
-                } : {}}
-                transition={{ 
-                  repeat: Infinity, 
-                  duration: 1.5,
-                  ease: "easeInOut"
-                }}
-              >
-                {isListening ? (
-                  <FaMicrophone className="w-5 h-5 text-white" />
-                ) : (
-                  <FaMicrophoneAlt className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                )}
-              </motion.div>
-            </motion.button>
-          </div>
+              {isListening ? (
+                <FaMicrophone className="w-5 h-5 text-white" />
+              ) : (
+                <FaMicrophoneAlt className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              )}
+            </motion.div>
+          </motion.button>
         )}
         <motion.button
           onClick={() => handleSendMessage()}
@@ -1463,6 +1565,7 @@ export default function Chatbot() {
     if (!voiceSupported) {
       console.error('Speech recognition not supported');
       setVoiceError('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
+      setTimeout(() => setVoiceError(undefined), 3000);
       return;
     }
 
@@ -1521,6 +1624,8 @@ export default function Chatbot() {
         const errorMessage = handleSpeechError(event.error);
         setVoiceError(errorMessage);
         setIsListening(false);
+        // Auto-clear error after 3 seconds
+        setTimeout(() => setVoiceError(undefined), 3000);
       };
 
       recognitionInstance.onend = () => {
@@ -1545,12 +1650,16 @@ export default function Chatbot() {
         console.error('Error starting recognition:', error);
         setVoiceError('Failed to start voice input. Please try again.');
         setIsListening(false);
+        // Auto-clear error after 3 seconds
+        setTimeout(() => setVoiceError(undefined), 3000);
       }
 
     } catch (error) {
       console.error('Speech recognition error:', error);
       setVoiceError('Voice input is not supported in this browser. Please use Chrome or Edge browser.');
       setVoiceSupported(false);
+      // Auto-clear error after 3 seconds
+      setTimeout(() => setVoiceError(undefined), 3000);
     }
   };
 
