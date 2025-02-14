@@ -7,8 +7,25 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+// Type definitions
+interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
+
+interface Message {
+  text: string;
+  isUser: boolean;
+  timestamp: Date | string;
+}
+
+interface QuickReplySuggestion {
+  text: string;
+  icon?: ReactNode;
+}
+
 // Context about the company and its services
-const SYSTEM_CONTEXT = `You are an AI assistant called "Apex AI" for Apex Labs, a company specializing in digital transformation and AI solutions. 
+const SYSTEM_CONTEXT = `You are an AI assistant called &quot;Apex AI&quot; for Apex Labs, a company specializing in digital transformation and AI solutions. 
 
 Your responses should be friendly, natural, and conversational - like a helpful human colleague rather than a formal AI. Keep initial greetings simple and warm. Only provide detailed information when specifically asked.
 
@@ -235,13 +252,7 @@ Contact:
   - Localisation: Fifth Settlement, Rue 90`
 };
 
-// Update Message type to include timestamp
-type Message = {
-  text: string;
-  isUser: boolean;
-  timestamp: Date | string;
-};
-
+// Fix TypeScript errors and unused variables
 const MessageText = ({ text }: { text: string }) => {
   const router = useRouter();
   
@@ -274,6 +285,7 @@ const MessageText = ({ text }: { text: string }) => {
   );
 };
 
+// Fix unescaped quotes in WelcomeMessage component
 const WelcomeMessage = ({ onClose }: { onClose: () => void }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -289,17 +301,17 @@ const WelcomeMessage = ({ onClose }: { onClose: () => void }) => (
       <FaTimes size={12} />
     </button>
     <p className="text-sm text-gray-700 dark:text-gray-200">
-      Hi! I'm Apex AI. Need help with digital transformation? I'm here to assist you! 👋
+      Hi! I&apos;m Apex AI. Need help with digital transformation? I&apos;m here to assist you! 👋
     </p>
   </motion.div>
 );
 
-// Add QuickReply component
+// Update the QuickReply component with proper types
 const QuickReply = ({ 
-  suggestions, 
+  suggestions,
   onSelect 
 }: { 
-  suggestions: Array<{ text: string; icon?: ReactNode }>;
+  suggestions: QuickReplySuggestion[];
   onSelect: (text: string) => void;
 }) => (
   <motion.div
@@ -352,7 +364,7 @@ const getQuickReplies = (lastMessage: string) => {
   return [];
 };
 
-// Add TimeStamp component
+// Fix TimeStamp component error handling
 const TimeStamp = ({ date }: { date: Date | string }) => {
   const formatTime = (dateInput: Date | string) => {
     try {
@@ -365,8 +377,8 @@ const TimeStamp = ({ date }: { date: Date | string }) => {
         minute: 'numeric',
         hour12: true
       }).format(dateObj);
-    } catch (error) {
-      console.error('Error formatting time:', error);
+    } catch (err) {
+      console.error('Error formatting time:', err);
       return '';
     }
   };
@@ -473,6 +485,13 @@ const exportChat = (messages: Message[]) => {
   URL.revokeObjectURL(url);
 };
 
+// Fix any type in localStorage effect
+interface StoredMessage {
+  text: string;
+  isUser: boolean;
+  timestamp: string;
+}
+
 export default function Chatbot() {
   const [currentLang, setCurrentLang] = useState<keyof typeof languages>('en');
   const [isOpen, setIsOpen] = useState(false);
@@ -498,19 +517,18 @@ export default function Chatbot() {
     scrollToMessage();
   }, [messages]);
 
-  // Load messages from localStorage on mount
+  // Update the useEffect with proper typing
   useEffect(() => {
     const savedMessages = localStorage.getItem('chatMessages');
     if (savedMessages) {
       try {
-        const parsed = JSON.parse(savedMessages);
-        // Safely convert stored timestamps back to Date objects
-        setMessages(parsed.map((msg: any) => ({
+        const parsed = JSON.parse(savedMessages) as StoredMessage[];
+        setMessages(parsed.map((msg) => ({
           ...msg,
           timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
         })));
-      } catch (error) {
-        console.error('Error parsing saved messages:', error);
+      } catch (err) {
+        console.error('Error parsing saved messages:', err);
         setMessages([{ 
           text: languages[currentLang].welcome,
           isUser: false,
@@ -580,7 +598,7 @@ export default function Chatbot() {
       const recentMessages = messages.slice(-5).map(msg => ({
         role: msg.isUser ? 'user' : 'assistant',
         content: msg.text
-      }));
+      } as ChatMessage));
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -607,7 +625,8 @@ export default function Chatbot() {
         isUser: false,
         timestamp: new Date()
       }]);
-    } catch (error) {
+    } catch (err: unknown) {
+      console.error('Chat error:', err);
       setMessages(prev => [...prev, {
         text: languages[currentLang].error,
         isUser: false,
@@ -776,7 +795,7 @@ export default function Chatbot() {
                         const recentMessages = messages.slice(-5).map(msg => ({
                           role: msg.isUser ? 'user' : 'assistant',
                           content: msg.text
-                        }));
+                        } as ChatMessage));
 
                         const response = await fetch('/api/chat', {
                           method: 'POST',
@@ -803,7 +822,8 @@ export default function Chatbot() {
                           isUser: false,
                           timestamp: new Date()
                         }]);
-                      } catch (error) {
+                      } catch (err: unknown) {
+                        console.error('Quick reply error:', err);
                         setMessages(prev => [...prev, {
                           text: languages[currentLang].error,
                           isUser: false,
