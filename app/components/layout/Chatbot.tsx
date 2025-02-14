@@ -42,10 +42,36 @@ interface QuickReplySuggestion {
   icon?: ReactNode;
 }
 
-// Add TypeScript declarations for Web Speech API
+// Update type definitions at the top
+interface SpeechRecognitionResult {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionAlternative {
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResultList {
+  [index: number]: SpeechRecognitionAlternative;
+  length: number;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: 'network' | 'not-allowed' | 'no-speech' | 'aborted' | 'audio-capture' | 'service-not-allowed';
+  message: string;
+}
+
+// Update the Window interface
 declare global {
   interface Window {
-    webkitSpeechRecognition: any;
+    webkitSpeechRecognition: new () => SpeechRecognitionInstance;
+    SpeechRecognition: new () => SpeechRecognitionInstance;
   }
 }
 
@@ -63,20 +89,6 @@ interface SpeechRecognitionInstance extends EventTarget {
   onend: (event: Event) => void;
   start: () => void;
   stop: () => void;
-}
-
-interface SpeechRecognitionEvent {
-  results: {
-    [key: number]: {
-      [key: number]: {
-        transcript: string;
-      };
-    };
-  };
-}
-
-interface SpeechRecognitionErrorEvent extends Event {
-  error: string;
 }
 
 // Context about the company and its services
@@ -690,7 +702,7 @@ const analyzeMessageContext = (message: string, messageHistory: Message[]): Mess
     .map(msg => msg.id);
 
   // Generate suggested responses based on topic
-  const suggestedResponses = getSuggestedResponses(detectedTopic, message);
+  const suggestedResponses = getSuggestedResponses(detectedTopic);
 
   return {
     topic: detectedTopic,
@@ -700,8 +712,8 @@ const analyzeMessageContext = (message: string, messageHistory: Message[]): Mess
   };
 };
 
-// Get suggested responses based on topic and context
-const getSuggestedResponses = (topic: string, message: string): string[] => {
+// Update getSuggestedResponses function
+const getSuggestedResponses = (topic: string): string[] => {
   const suggestions: { [key: string]: string[] } = {
     technical: [
       "Could you provide more details about the technical issue?",
@@ -767,7 +779,6 @@ export default function Chatbot() {
   const [activeThread, setActiveThread] = useState<string | undefined>(undefined);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [contextSuggestions, setContextSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -928,7 +939,6 @@ export default function Chatbot() {
     try {
       // Analyze context before sending
       const context = analyzeMessageContext(inputText, messages);
-      setContextSuggestions(context.suggestedResponses);
 
       const recentMessages = messages.slice(-5).map(msg => ({
         role: msg.isUser ? 'user' : 'assistant',
@@ -1074,7 +1084,6 @@ export default function Chatbot() {
 
                 try {
                   const context = analyzeMessageContext(text, messages);
-                  setContextSuggestions(context.suggestedResponses);
 
                   const recentMessages = messages.slice(-5).map(msg => ({
                     role: msg.isUser ? 'user' : 'assistant',
@@ -1308,14 +1317,14 @@ export default function Chatbot() {
         setVoiceError(undefined);
       };
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         if (event.results && event.results[0] && event.results[0][0]) {
           const transcript = event.results[0][0].transcript;
           setInputText(prev => prev + ' ' + transcript.trim());
         }
       };
 
-      recognition.onerror = (event: any) => {
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error:', event.error);
         const errorMessage = handleSpeechError(event.error);
         setVoiceError(errorMessage);
