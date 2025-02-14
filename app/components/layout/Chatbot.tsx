@@ -75,10 +75,6 @@ declare global {
   }
 }
 
-type SpeechRecognition = {
-  new (): SpeechRecognitionInstance;
-};
-
 interface SpeechRecognitionInstance extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
@@ -1300,7 +1296,7 @@ export default function Chatbot() {
     }
 
     try {
-      const SpeechRecognition = window.webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
       if (!SpeechRecognition) {
         throw new Error('Speech recognition is not supported in this browser');
       }
