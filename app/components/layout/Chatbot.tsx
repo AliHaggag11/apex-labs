@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaRobot, FaTimes, FaPaperPlane, FaTrash, FaClock, FaInfoCircle, FaDollarSign, FaHeadset, FaGlobe, FaDownload, FaReply, FaChevronDown, FaMicrophone, FaMicrophoneAlt } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import type { ReactNode, JSX, ReactElement } from 'react';
+import type { ReactNode, ReactElement } from 'react';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 
 // Type definitions
@@ -657,12 +657,11 @@ const ChatContext = createContext<ChatContextType>({
 // Update the Message component return type
 const Message = ({ 
   message: messageWithLocation, 
-  isLast,
+  isLast, 
   onQuickReply,
   onThreadReply,
   thread,
   showThreads = true,
-  parentMessage,
   onLinkClick
 }: { 
   message: MessageWithLocation; 
@@ -681,7 +680,7 @@ const Message = ({
   const handleQuickReply = (text: string) => {
     onQuickReply(text);
   };
-
+  
   return (
     <div className={`flex flex-col ${messageWithLocation.isUser ? 'items-end' : 'items-start'} space-y-2 w-full max-w-[85%]`}>
       <div className={`w-full px-4 py-3 ${
@@ -759,7 +758,7 @@ const Message = ({
                 {tag}
               </span>
             ))}
-          </div>
+      </div>
         )}
       </div>
 
@@ -1283,7 +1282,7 @@ export default function Chatbot() {
           ? messages.find(m => m.id === message.threadId)
           : undefined;
 
-        return (
+  return (
           <motion.div
             key={message.id}
             initial={{ opacity: 0, y: 10 }}
@@ -1575,115 +1574,115 @@ export default function Chatbot() {
 
   return (
     <ChatContext.Provider value={{ setMessages }}>
-      <div className="fixed bottom-6 right-6 z-50">
-        {/* Chat Toggle Button with Welcome Message */}
-        <div className="relative">
-          <AnimatePresence>
-            {showWelcome && !isOpen && (
-              <WelcomeMessage onClose={() => setShowWelcome(false)} />
-            )}
-          </AnimatePresence>
-        <motion.button
-            onClick={() => {
-              setIsOpen(!isOpen);
-              setShowWelcome(false);
-            }}
-          variants={buttonVariants}
-          initial="initial"
-          whileHover="hover"
-          whileTap="tap"
-            className="w-14 h-14 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-500 text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300"
-            style={{
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-            }}
-        >
-          <motion.div
-            animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.3 }}
-              className="flex items-center justify-center"
-            >
-              {isOpen ? (
-                <FaTimes className="w-5 h-5 text-white/90" />
-              ) : (
-                <FaRobot className="w-6 h-6 text-white/90" />
-              )}
-          </motion.div>
-        </motion.button>
-        </div>
-
-        {/* Chat Window */}
+    <div className="fixed bottom-6 right-6 z-50">
+      {/* Chat Toggle Button with Welcome Message */}
+      <div className="relative">
         <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              ref={chatWindowRef}
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              style={{ 
-                position: isMobile ? 'fixed' : 'absolute',
-                left: isMobile ? '1rem' : 'auto',
-                right: isMobile ? '1rem' : '0',
-                top: isMobile ? '1rem' : 'auto',
-                bottom: isMobile ? '5rem' : '5rem',
-                width: isMobile ? 'auto' : '380px',
-                height: isMobile ? 'calc(100vh - 6rem)' : '580px',
-                overflowY: 'hidden'
-              }}
-              className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl flex flex-col border border-gray-100 dark:border-gray-800"
-            >
-              {/* Header */}
-              <div className="px-6 py-4 bg-gradient-to-r from-primary-600 to-primary-500 text-white">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
-                      <FaRobot className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-base">Apex AI</h3>
-                      <p className="text-xs text-white/80">{languages[currentLang].online}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <LanguageSelector 
-                      currentLang={currentLang} 
-                      onLanguageChange={setCurrentLang} 
-                    />
-                    <button
-                      onClick={() => exportChat(messages)}
-                      className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
-                      title={languages[currentLang].exportChat}
-                    >
-                      <FaDownload className="w-4 h-4 text-white/80" />
-                    </button>
-                    <button 
-                      onClick={handleClearChat}
-                      className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
-                      title={languages[currentLang].clearChat}
-                    >
-                      <FaTrash className="w-4 h-4 text-white/80" />
-                    </button>
-                    {isMobile && (
-                      <button 
-                        onClick={() => setIsOpen(false)}
-                        className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
-                      >
-                        <FaTimes className="w-4 h-4 text-white/80" />
-                    </button>
-                  )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Messages */}
-              {renderMessages()}
-
-              {/* Input */}
-              {renderInput()}
-            </motion.div>
+          {showWelcome && !isOpen && (
+            <WelcomeMessage onClose={() => setShowWelcome(false)} />
           )}
         </AnimatePresence>
+      <motion.button
+          onClick={() => {
+            setIsOpen(!isOpen);
+            setShowWelcome(false);
+          }}
+        variants={buttonVariants}
+        initial="initial"
+        whileHover="hover"
+        whileTap="tap"
+          className="w-14 h-14 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-500 text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300"
+          style={{
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+          }}
+      >
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.3 }}
+            className="flex items-center justify-center"
+          >
+            {isOpen ? (
+              <FaTimes className="w-5 h-5 text-white/90" />
+            ) : (
+              <FaRobot className="w-6 h-6 text-white/90" />
+            )}
+        </motion.div>
+      </motion.button>
       </div>
+
+      {/* Chat Window */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+              ref={chatWindowRef}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            style={{ 
+              position: isMobile ? 'fixed' : 'absolute',
+              left: isMobile ? '1rem' : 'auto',
+              right: isMobile ? '1rem' : '0',
+              top: isMobile ? '1rem' : 'auto',
+              bottom: isMobile ? '5rem' : '5rem',
+              width: isMobile ? 'auto' : '380px',
+              height: isMobile ? 'calc(100vh - 6rem)' : '580px',
+              overflowY: 'hidden'
+            }}
+            className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl flex flex-col border border-gray-100 dark:border-gray-800"
+          >
+            {/* Header */}
+            <div className="px-6 py-4 bg-gradient-to-r from-primary-600 to-primary-500 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                    <FaRobot className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-base">Apex AI</h3>
+                    <p className="text-xs text-white/80">{languages[currentLang].online}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <LanguageSelector 
+                    currentLang={currentLang} 
+                    onLanguageChange={setCurrentLang} 
+                  />
+                  <button
+                    onClick={() => exportChat(messages)}
+                    className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
+                    title={languages[currentLang].exportChat}
+                  >
+                    <FaDownload className="w-4 h-4 text-white/80" />
+                  </button>
+                  <button 
+                    onClick={handleClearChat}
+                    className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
+                    title={languages[currentLang].clearChat}
+                  >
+                    <FaTrash className="w-4 h-4 text-white/80" />
+                  </button>
+                  {isMobile && (
+                    <button 
+                      onClick={() => setIsOpen(false)}
+                      className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
+                    >
+                      <FaTimes className="w-4 h-4 text-white/80" />
+                  </button>
+                )}
+                </div>
+              </div>
+            </div>
+
+            {/* Messages */}
+              {renderMessages()}
+
+            {/* Input */}
+              {renderInput()}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
     </ChatContext.Provider>
   );
 } 
