@@ -15,6 +15,17 @@ const routeMap: { [key: string]: string } = {
   'blog': '/blog'
 };
 
+// Add type definitions
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface SystemMessage {
+  role: 'system';
+  content: string;
+}
+
 // Function to detect and format page links
 const addPageLinks = (text: string) => {
   let result = text;
@@ -89,7 +100,7 @@ export async function POST(req: Request) {
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     // Prepare the message with context
-    const systemContext = messages.find((msg: any) => msg.role === 'system')?.content || '';
+    const systemContext = messages.find((msg: SystemMessage | ChatMessage) => msg.role === 'system')?.content || '';
     const userMessage = messages[messages.length - 1].content;
 
     // Add language instruction

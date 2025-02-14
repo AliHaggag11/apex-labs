@@ -415,24 +415,7 @@ const Message = ({
       </div>
       <TimeStamp date={message.timestamp} />
       {suggestions.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-wrap gap-2 mt-2"
-        >
-          {suggestions.map((suggestion, index) => (
-            <motion.button
-              key={index}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => onQuickReply(suggestion.text)}
-              className="flex items-center gap-2 px-4 py-2 text-sm bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 rounded-xl border border-primary-100 dark:border-gray-700 hover:bg-primary-50 dark:hover:bg-gray-700 transition-all duration-200"
-            >
-              {suggestion.icon}
-              <span>{suggestion.text}</span>
-            </motion.button>
-          ))}
-        </motion.div>
+        <QuickReply suggestions={suggestions} onSelect={onQuickReply} />
       )}
     </div>
   );
