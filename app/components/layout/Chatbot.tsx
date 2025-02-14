@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaRobot, FaTimes, FaPaperPlane, FaTrash, FaClock, FaInfoCircle, FaDollarSign, FaHeadset, FaGlobe, FaDownload, FaReply, FaChevronDown, FaMicrophone, FaMicrophoneAlt } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import type { ReactNode, JSX, ReactElement } from 'react';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 
 // Type definitions
@@ -494,6 +494,7 @@ interface Location {
 
 interface MessageWithLocation extends Message {
   location?: Location;
+  showCalculator?: boolean;
 }
 
 // Add the LocationCard component before the Message component
@@ -529,7 +530,131 @@ const LocationCard = ({ location }: { location: Location }) => (
   </div>
 );
 
-// Update the Message component to pass the onLinkClick handler
+// Add these interfaces after the existing interfaces
+interface PriceEstimate {
+  businessScale: string;
+  complexity: string;
+  services: string[];
+  estimate: number;
+}
+
+// Add the MiniPriceCalculator component before the Message component
+const MiniPriceCalculator = ({ 
+  onEstimate 
+}: { 
+  onEstimate: (estimate: PriceEstimate) => void 
+}) => {
+  const [businessScale, setBusinessScale] = useState('startup');
+  const [complexity, setComplexity] = useState('basic');
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+
+  const calculateEstimate = () => {
+    const basePrice = 5000;
+    const scaleMultiplier = {
+      startup: 1,
+      small: 1.5,
+      medium: 2,
+      enterprise: 3
+    }[businessScale] || 1;
+
+    const complexityMultiplier = {
+      basic: 1,
+      standard: 1.5,
+      advanced: 2,
+      enterprise: 3
+    }[complexity] || 1;
+
+    const servicesMultiplier = Math.max(1, selectedServices.length * 0.8);
+    const estimate = basePrice * servicesMultiplier * scaleMultiplier * complexityMultiplier;
+    
+    return Math.round(estimate / 1000) * 1000;
+  };
+
+  const handleSubmit = () => {
+    if (selectedServices.length === 0) return;
+    
+    onEstimate({
+      businessScale,
+      complexity,
+      services: selectedServices,
+      estimate: calculateEstimate()
+    });
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 space-y-4 text-sm">
+      <div>
+        <label className="block text-gray-700 dark:text-gray-300 mb-2">Business Scale</label>
+        <select
+          value={businessScale}
+          onChange={(e) => setBusinessScale(e.target.value)}
+          className="w-full p-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
+        >
+          <option value="startup">Startup (1-10 employees)</option>
+          <option value="small">Small Business (11-50 employees)</option>
+          <option value="medium">Medium Business (51-200 employees)</option>
+          <option value="enterprise">Enterprise (201+ employees)</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-gray-700 dark:text-gray-300 mb-2">Service Complexity</label>
+        <select
+          value={complexity}
+          onChange={(e) => setComplexity(e.target.value)}
+          className="w-full p-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600"
+        >
+          <option value="basic">Basic</option>
+          <option value="standard">Standard</option>
+          <option value="advanced">Advanced</option>
+          <option value="enterprise">Custom Enterprise</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-gray-700 dark:text-gray-300 mb-2">Select Services</label>
+        <div className="space-y-2">
+          {['Cloud & Infrastructure', 'Business Automation', 'AI Solutions'].map((service) => (
+            <label key={service} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={selectedServices.includes(service)}
+                onChange={() => {
+                  setSelectedServices(prev =>
+                    prev.includes(service)
+                      ? prev.filter(s => s !== service)
+                      : [...prev, service]
+                  );
+                }}
+                className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-gray-700 dark:text-gray-300">{service}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <button
+        onClick={handleSubmit}
+        disabled={selectedServices.length === 0}
+        className="w-full py-2 px-4 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg transition-colors"
+      >
+        Calculate Estimate
+      </button>
+    </div>
+  );
+};
+
+// Add ChatContext definition after imports and before other interfaces
+interface ChatContextType {
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+}
+
+const ChatContext = createContext<ChatContextType>({
+  setMessages: () => {},
+});
+
+// Update the Message component return type
 const Message = ({ 
   message: messageWithLocation, 
   isLast,
@@ -548,90 +673,94 @@ const Message = ({
   showThreads?: boolean;
   parentMessage?: Message;
   onLinkClick?: () => void;
-}) => {
+}): ReactElement => {
   const [isThreadExpanded, setIsThreadExpanded] = useState(false);
   const suggestions = !messageWithLocation.isUser && isLast ? getQuickReplies(messageWithLocation.text) : [];
-  
+  const { setMessages } = useContext(ChatContext);
+
+  const handleQuickReply = (text: string) => {
+    onQuickReply(text);
+  };
+
   return (
     <div className={`flex flex-col ${messageWithLocation.isUser ? 'items-end' : 'items-start'} space-y-2 w-full max-w-[85%]`}>
-      <div className="flex flex-col space-y-1 w-full">
-        {messageWithLocation.threadId && parentMessage && (
-          <div 
-            className={`flex items-center space-x-2 px-4 py-2 -mb-1 rounded-t-xl relative ${
-              messageWithLocation.isUser 
-                ? 'bg-primary-700/20 text-white' 
-                : 'bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300'
-            }`}
-          >
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-500 dark:bg-primary-400 rounded-tl-xl" />
-            <div className="flex flex-col overflow-hidden pl-2">
-              <span className="text-xs font-medium text-primary-500 dark:text-primary-400">
-                {parentMessage.isUser ? 'You' : 'Apex AI'}
-              </span>
-              <span className="text-sm truncate">
-                {parentMessage.text}
-              </span>
-            </div>
+      <div className={`w-full px-4 py-3 ${
+        messageWithLocation.isUser
+          ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-2xl' +
+            (messageWithLocation.threadId ? ' rounded-tr-none' : ' rounded-br-none')
+          : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl' +
+            (messageWithLocation.threadId ? ' rounded-tl-none' : ' rounded-bl-none') +
+            ' shadow-sm dark:shadow-none'
+      }`}>
+        <MessageText text={messageWithLocation.text} onLinkClick={onLinkClick} />
+        {messageWithLocation.location && (
+          <div className="mt-3">
+            <LocationCard location={messageWithLocation.location} />
           </div>
         )}
+      </div>
 
-        <div
-          className={`w-full px-4 py-3 ${
-            messageWithLocation.isUser
-              ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-2xl' +
-                (messageWithLocation.threadId ? ' rounded-tr-none' : ' rounded-br-none')
-              : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl' +
-                (messageWithLocation.threadId ? ' rounded-tl-none' : ' rounded-bl-none') +
-                ' shadow-sm dark:shadow-none'
-          }`}
-        >
-          <MessageText text={messageWithLocation.text} onLinkClick={onLinkClick} />
-          {messageWithLocation.location && (
-            <div className="mt-3">
-              <LocationCard location={messageWithLocation.location} />
-            </div>
-          )}
+      {messageWithLocation.showCalculator && (
+        <div className="mt-4 w-full">
+          <MiniPriceCalculator 
+            onEstimate={(estimate: PriceEstimate) => {
+              const responseMessage: MessageWithLocation = {
+                id: generateId(),
+                text: `Based on your selections:\n\n` +
+                      `• Business Scale: ${estimate.businessScale}\n` +
+                      `• Complexity: ${estimate.complexity}\n` +
+                      `• Services: ${estimate.services.join(', ')}\n\n` +
+                      `Estimated Cost Range: $${(estimate.estimate * 0.8).toLocaleString()} - $${(estimate.estimate * 1.2).toLocaleString()}\n\n` +
+                      `Please note that this is a rough estimate. For a more accurate quote tailored to your specific needs, I recommend scheduling a consultation through our contact page.`,
+                isUser: false,
+                timestamp: new Date(),
+                contextTags: ['pricing'],
+                replyCount: 0
+              };
+              setMessages((prev: Message[]) => [...prev, responseMessage]);
+            }}
+          />
         </div>
+      )}
 
-        {/* Message Footer */}
-        <div className="flex items-center space-x-2 text-xs text-gray-400 dark:text-gray-500 px-1">
-          <TimeStamp date={messageWithLocation.timestamp} />
-          {showThreads && !messageWithLocation.threadId && (
-            <button 
-              onClick={() => onThreadReply(messageWithLocation.id)}
-              className="flex items-center space-x-1 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+      {/* Message Footer */}
+      <div className="flex items-center space-x-2 text-xs text-gray-400 dark:text-gray-500 px-1">
+        <TimeStamp date={messageWithLocation.timestamp} />
+        {showThreads && !messageWithLocation.threadId && (
+          <button 
+            onClick={() => onThreadReply(messageWithLocation.id)}
+            className="flex items-center space-x-1 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          >
+            <FaReply className="w-3 h-3" />
+            <span>Reply</span>
+          </button>
+        )}
+        {messageWithLocation.replyCount > 0 && (
+          <button
+            onClick={() => setIsThreadExpanded(!isThreadExpanded)}
+            className="flex items-center space-x-1 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          >
+            <span>{messageWithLocation.replyCount} {messageWithLocation.replyCount === 1 ? 'reply' : 'replies'}</span>
+            <motion.div
+              animate={{ rotate: isThreadExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
             >
-              <FaReply className="w-3 h-3" />
-              <span>Reply</span>
-            </button>
-          )}
-          {messageWithLocation.replyCount > 0 && (
-            <button
-              onClick={() => setIsThreadExpanded(!isThreadExpanded)}
-              className="flex items-center space-x-1 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-            >
-              <span>{messageWithLocation.replyCount} {messageWithLocation.replyCount === 1 ? 'reply' : 'replies'}</span>
-              <motion.div
-                animate={{ rotate: isThreadExpanded ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
+              <FaChevronDown className="w-3 h-3" />
+            </motion.div>
+          </button>
+        )}
+        {messageWithLocation.contextTags.length > 0 && (
+          <div className="flex space-x-1">
+            {messageWithLocation.contextTags.map((tag, index) => (
+              <span 
+                key={index}
+                className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs"
               >
-                <FaChevronDown className="w-3 h-3" />
-              </motion.div>
-            </button>
-          )}
-          {messageWithLocation.contextTags.length > 0 && (
-            <div className="flex space-x-1">
-              {messageWithLocation.contextTags.map((tag, index) => (
-                <span 
-                  key={index}
-                  className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Thread Messages */}
@@ -658,9 +787,9 @@ const Message = ({
       )}
 
       {/* Quick Replies and Context Suggestions */}
-      {suggestions.length > 0 && (
+      {suggestions.length > 0 && !messageWithLocation.isUser && isLast && (
         <div className="space-y-2 w-full">
-          <QuickReply suggestions={suggestions} onSelect={onQuickReply} />
+          <QuickReply suggestions={suggestions} onSelect={handleQuickReply} />
           {messageWithLocation.contextTags.length > 0 && (
             <div className="text-xs text-gray-500 dark:text-gray-400">
               Related to: {messageWithLocation.contextTags.join(', ')}
@@ -672,7 +801,7 @@ const Message = ({
   );
 };
 
-// Add Language Selector component
+// Fix the comma in the LanguageSelector component
 const LanguageSelector = ({ 
   currentLang, 
   onLanguageChange 
@@ -845,6 +974,7 @@ const VoiceFeedback = ({ error }: VoiceFeedbackProps) => (
   </motion.div>
 );
 
+// Update the Chatbot component to provide ChatContext
 export default function Chatbot() {
   const [currentLang, setCurrentLang] = useState<keyof typeof languages>('en');
   const [isOpen, setIsOpen] = useState(false);
@@ -967,15 +1097,17 @@ export default function Chatbot() {
   };
 
   // Update message sending with threading and context
-  const handleSendMessage = async () => {
-    if (!inputText.trim() || isLoading) return;
+  const handleSendMessage = async (event?: React.MouseEvent | string) => {
+    const messageText = typeof event === 'string' ? event.trim() : inputText.trim();
+    
+    if (!messageText || isLoading) return;
 
     const newMessageId = generateId();
     const threadId = activeThread || undefined;
     
     const newUserMessage: MessageWithLocation = { 
       id: newMessageId,
-      text: inputText, 
+      text: messageText, 
       isUser: true,
       timestamp: new Date(),
       threadId,
@@ -983,38 +1115,33 @@ export default function Chatbot() {
       replyCount: 0
     };
 
-    // Update threads if this is a reply
-    if (activeThread) {
-      const existingThread = threads.find(t => t.id === activeThread);
-      if (existingThread) {
-        setThreads(prev => prev.map(t => 
-          t.id === activeThread 
-            ? { ...t, messages: [...t.messages, newUserMessage] }
-            : t
-        ));
-      } else {
-        setThreads(prev => [...prev, {
-          id: activeThread,
-          parentMessageId: activeThread,
-          messages: [newUserMessage],
-          isExpanded: true
-        }]);
-      }
-
-      // Update reply count on parent message
-      setMessages(prev => prev.map(m => 
-        m.id === activeThread 
-          ? { ...m, replyCount: (m.replyCount || 0) + 1 }
-          : m
-      ));
-    }
-
     setMessages(prev => [...prev, newUserMessage]);
+    setInputText('');
     setIsLoading(true);
 
     try {
-      // Analyze context before sending
-      const context = analyzeMessageContext(inputText, messages);
+      // Check if this is a pricing query
+      const isPricingQuery = messageText.toLowerCase().match(/price|pricing|cost|quote|estimate|calculator|charge|how much/);
+      
+      if (isPricingQuery) {
+        const calculatorMessage: MessageWithLocation = {
+          id: generateId(),
+          text: "I can help you estimate the cost of our services. Please note that these are rough estimates, and actual pricing may vary based on specific requirements. Use our mini calculator below to get a quick estimate, or visit our pricing page for more detailed information.\n\nSelect your business scale, service complexity, and desired services to get started:",
+          isUser: false,
+          timestamp: new Date(),
+          threadId: activeThread,
+          contextTags: ['pricing'],
+          replyCount: 0,
+          showCalculator: true
+        };
+        
+        setMessages(prev => [...prev, calculatorMessage]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Continue with the regular message handling
+      const context = analyzeMessageContext(messageText, messages);
 
       const recentMessages = messages.slice(-5).map(msg => ({
         role: msg.isUser ? 'user' : 'assistant',
@@ -1030,7 +1157,7 @@ export default function Chatbot() {
           messages: [
             { role: 'system', content: SYSTEM_CONTEXTS[currentLang] },
             ...recentMessages,
-            { role: 'user', content: inputText }
+            { role: 'user', content: messageText }
           ],
           language: currentLang
         }),
@@ -1060,23 +1187,15 @@ export default function Chatbot() {
         }
       };
 
-      if (inputText.toLowerCase().includes('location') || 
-          inputText.toLowerCase().includes('address') || 
-          inputText.toLowerCase().includes('office')) {
+      if (messageText.toLowerCase().includes('location') || 
+          messageText.toLowerCase().includes('address') || 
+          messageText.toLowerCase().includes('office')) {
         newAssistantMessage.location = officeLocation;
       }
 
-      if (activeThread) {
-        setThreads(prev => prev.map(t => 
-          t.id === activeThread 
-            ? { ...t, messages: [...t.messages, newAssistantMessage] }
-            : t
-        ));
-      }
-
       setMessages(prev => [...prev, newAssistantMessage]);
-    } catch (err: unknown) {
-      console.error('Chat error:', err);
+    } catch (error) {
+      console.error('Chat error:', error);
       const errorMessage: MessageWithLocation = {
         id: generateId(),
         text: languages[currentLang].error,
@@ -1089,7 +1208,6 @@ export default function Chatbot() {
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      setInputText('');
       setReplyingTo(null);
       if (activeThread) {
         setActiveThread(undefined);
@@ -1177,72 +1295,7 @@ export default function Chatbot() {
             <Message 
               message={message} 
               isLast={index === messages.length - 1}
-              onQuickReply={async (text) => {
-                const newUserMessage: MessageWithLocation = { 
-                  id: generateId(),
-                  text, 
-                  isUser: true,
-                  timestamp: new Date(),
-                  contextTags: [],
-                  replyCount: 0
-                };
-                
-                setMessages(prev => [...prev, newUserMessage]);
-                setIsLoading(true);
-
-                try {
-                  const context = analyzeMessageContext(text, messages);
-
-                  const recentMessages = messages.slice(-5).map(msg => ({
-                    role: msg.isUser ? 'user' : 'assistant',
-                    content: msg.text
-                  } as ChatMessage));
-
-                  const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                      messages: [
-                        { role: 'system', content: SYSTEM_CONTEXTS[currentLang] },
-                        ...recentMessages,
-                        { role: 'user', content: text }
-                      ],
-                      language: currentLang
-                    }),
-                  });
-
-                  if (!response.ok) {
-                    throw new Error('Failed to get response');
-                  }
-
-                  const data = await response.json();
-                  const newAssistantMessage: MessageWithLocation = {
-                    id: generateId(),
-                    text: data.response,
-                    isUser: false,
-                    timestamp: new Date(),
-                    contextTags: [context.topic],
-                    replyCount: 0
-                  };
-                  
-                  setMessages(prev => [...prev, newAssistantMessage]);
-                } catch (err: unknown) {
-                  console.error('Quick reply error:', err);
-                  const errorMessage: MessageWithLocation = {
-                    id: generateId(),
-                    text: languages[currentLang].error,
-                    isUser: false,
-                    timestamp: new Date(),
-                    contextTags: ['error'],
-                    replyCount: 0
-                  };
-                  setMessages(prev => [...prev, errorMessage]);
-                } finally {
-                  setIsLoading(false);
-                }
-              }}
+              onQuickReply={handleSendMessage}
               onThreadReply={handleThreadReply}
               thread={thread}
               parentMessage={parentMessage}
@@ -1394,7 +1447,7 @@ export default function Chatbot() {
           </div>
         )}
         <motion.button
-          onClick={handleSendMessage}
+          onClick={() => handleSendMessage()}
           disabled={isLoading || (isListening && !inputText)}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -1521,114 +1574,116 @@ export default function Chatbot() {
   }, []);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {/* Chat Toggle Button with Welcome Message */}
-      <div className="relative">
-        <AnimatePresence>
-          {showWelcome && !isOpen && (
-            <WelcomeMessage onClose={() => setShowWelcome(false)} />
-          )}
-        </AnimatePresence>
-      <motion.button
-          onClick={() => {
-            setIsOpen(!isOpen);
-            setShowWelcome(false);
-          }}
-        variants={buttonVariants}
-        initial="initial"
-        whileHover="hover"
-        whileTap="tap"
-          className="w-14 h-14 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-500 text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300"
-          style={{
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-          }}
-      >
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.3 }}
-            className="flex items-center justify-center"
-          >
-            {isOpen ? (
-              <FaTimes className="w-5 h-5 text-white/90" />
-            ) : (
-              <FaRobot className="w-6 h-6 text-white/90" />
+    <ChatContext.Provider value={{ setMessages }}>
+      <div className="fixed bottom-6 right-6 z-50">
+        {/* Chat Toggle Button with Welcome Message */}
+        <div className="relative">
+          <AnimatePresence>
+            {showWelcome && !isOpen && (
+              <WelcomeMessage onClose={() => setShowWelcome(false)} />
             )}
-        </motion.div>
-      </motion.button>
-      </div>
-
-      {/* Chat Window */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            ref={chatWindowRef}
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            style={{ 
-              position: isMobile ? 'fixed' : 'absolute',
-              left: isMobile ? '1rem' : 'auto',
-              right: isMobile ? '1rem' : '0',
-              top: isMobile ? '1rem' : 'auto',
-              bottom: isMobile ? '5rem' : '5rem',
-              width: isMobile ? 'auto' : '380px',
-              height: isMobile ? 'calc(100vh - 6rem)' : '580px',
-              overflowY: 'hidden'
+          </AnimatePresence>
+        <motion.button
+            onClick={() => {
+              setIsOpen(!isOpen);
+              setShowWelcome(false);
             }}
-            className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl flex flex-col border border-gray-100 dark:border-gray-800"
-          >
-            {/* Header */}
-            <div className="px-6 py-4 bg-gradient-to-r from-primary-600 to-primary-500 text-white">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
-                    <FaRobot className="w-5 h-5 text-white" />
+          variants={buttonVariants}
+          initial="initial"
+          whileHover="hover"
+          whileTap="tap"
+            className="w-14 h-14 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-500 text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300"
+            style={{
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+            }}
+        >
+          <motion.div
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+              className="flex items-center justify-center"
+            >
+              {isOpen ? (
+                <FaTimes className="w-5 h-5 text-white/90" />
+              ) : (
+                <FaRobot className="w-6 h-6 text-white/90" />
+              )}
+          </motion.div>
+        </motion.button>
+        </div>
+
+        {/* Chat Window */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              ref={chatWindowRef}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              style={{ 
+                position: isMobile ? 'fixed' : 'absolute',
+                left: isMobile ? '1rem' : 'auto',
+                right: isMobile ? '1rem' : '0',
+                top: isMobile ? '1rem' : 'auto',
+                bottom: isMobile ? '5rem' : '5rem',
+                width: isMobile ? 'auto' : '380px',
+                height: isMobile ? 'calc(100vh - 6rem)' : '580px',
+                overflowY: 'hidden'
+              }}
+              className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl flex flex-col border border-gray-100 dark:border-gray-800"
+            >
+              {/* Header */}
+              <div className="px-6 py-4 bg-gradient-to-r from-primary-600 to-primary-500 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                      <FaRobot className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-base">Apex AI</h3>
+                      <p className="text-xs text-white/80">{languages[currentLang].online}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-base">Apex AI</h3>
-                    <p className="text-xs text-white/80">{languages[currentLang].online}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <LanguageSelector 
-                    currentLang={currentLang} 
-                    onLanguageChange={setCurrentLang} 
-                  />
-                  <button
-                    onClick={() => exportChat(messages)}
-                    className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
-                    title={languages[currentLang].exportChat}
-                  >
-                    <FaDownload className="w-4 h-4 text-white/80" />
-                  </button>
-                  <button 
-                    onClick={handleClearChat}
-                    className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
-                    title={languages[currentLang].clearChat}
-                  >
-                    <FaTrash className="w-4 h-4 text-white/80" />
-                  </button>
-                  {isMobile && (
-                    <button 
-                      onClick={() => setIsOpen(false)}
+                  <div className="flex items-center space-x-2">
+                    <LanguageSelector 
+                      currentLang={currentLang} 
+                      onLanguageChange={setCurrentLang} 
+                    />
+                    <button
+                      onClick={() => exportChat(messages)}
                       className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
+                      title={languages[currentLang].exportChat}
                     >
-                      <FaTimes className="w-4 h-4 text-white/80" />
-                  </button>
-                )}
+                      <FaDownload className="w-4 h-4 text-white/80" />
+                    </button>
+                    <button 
+                      onClick={handleClearChat}
+                      className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
+                      title={languages[currentLang].clearChat}
+                    >
+                      <FaTrash className="w-4 h-4 text-white/80" />
+                    </button>
+                    {isMobile && (
+                      <button 
+                        onClick={() => setIsOpen(false)}
+                        className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
+                      >
+                        <FaTimes className="w-4 h-4 text-white/80" />
+                    </button>
+                  )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Messages */}
-            {renderMessages()}
+              {/* Messages */}
+              {renderMessages()}
 
-            {/* Input */}
-            {renderInput()}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+              {/* Input */}
+              {renderInput()}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </ChatContext.Provider>
   );
 } 
