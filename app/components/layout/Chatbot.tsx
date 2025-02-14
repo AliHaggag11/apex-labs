@@ -6,6 +6,7 @@ import { FaRobot, FaTimes, FaPaperPlane, FaTrash, FaClock, FaInfoCircle, FaDolla
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 
 // Type definitions
 interface ChatMessage {
@@ -50,6 +51,7 @@ interface SpeechRecognitionResult {
 
 interface SpeechRecognitionAlternative {
   [index: number]: SpeechRecognitionResult;
+  isFinal: boolean;
 }
 
 interface SpeechRecognitionResultList {
@@ -67,6 +69,10 @@ interface SpeechRecognitionErrorEvent extends Event {
   message: string;
 }
 
+interface VoiceFeedbackProps {
+  error?: string;
+}
+
 // Update the Window interface
 declare global {
   interface Window {
@@ -78,6 +84,7 @@ declare global {
 interface SpeechRecognitionInstance extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
+  maxAlternatives: number;
   lang: string;
   onstart: (event: Event) => void;
   onresult: (event: SpeechRecognitionEvent) => void;
@@ -473,9 +480,55 @@ const TimeStamp = ({ date }: { date: Date | string }) => {
   );
 };
 
-// Update Message component to include timestamp
+// Add these interfaces after the existing interfaces
+interface Location {
+  address: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+}
+
+interface MessageWithLocation extends Message {
+  location?: Location;
+}
+
+// Add the LocationCard component before the Message component
+const LocationCard = ({ location }: { location: Location }) => (
+  <div className="w-full max-w-[300px] bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
+    <div className="h-[200px] w-full relative">
+      <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+        <GoogleMap
+          mapContainerStyle={{ width: '100%', height: '100%' }}
+          center={location.coordinates}
+          zoom={15}
+          options={{
+            disableDefaultUI: true,
+            zoomControl: true,
+          }}
+        >
+          <Marker position={location.coordinates} />
+        </GoogleMap>
+      </LoadScript>
+    </div>
+    <div className="p-3 border-t border-gray-100 dark:border-gray-700">
+      <p className="text-sm text-gray-700 dark:text-gray-300">{location.address}</p>
+      <a
+        href={`https://www.google.com/maps/search/?api=1&query=${location.coordinates.lat},${location.coordinates.lng}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2 text-xs text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 flex items-center gap-1"
+      >
+        <FaGlobe className="w-3 h-3" />
+        <span>Open in Google Maps</span>
+      </a>
+    </div>
+  </div>
+);
+
+// Update the Message component to handle location
 const Message = ({ 
-  message, 
+  message: messageWithLocation, 
   isLast,
   onQuickReply,
   onThreadReply,
@@ -483,25 +536,24 @@ const Message = ({
   showThreads = true,
   parentMessage
 }: { 
-  message: Message; 
+  message: MessageWithLocation; 
   isLast: boolean;
   onQuickReply: (text: string) => void;
   onThreadReply: (messageId: string) => void;
   thread?: Thread;
   showThreads?: boolean;
-  parentMessage?: Message;  // Add parent message for reply reference
+  parentMessage?: Message;
 }) => {
   const [isThreadExpanded, setIsThreadExpanded] = useState(false);
-  const suggestions = !message.isUser && isLast ? getQuickReplies(message.text) : [];
+  const suggestions = !messageWithLocation.isUser && isLast ? getQuickReplies(messageWithLocation.text) : [];
   
   return (
-    <div className={`flex flex-col ${message.isUser ? 'items-end' : 'items-start'} space-y-2 w-full max-w-[85%]`}>
+    <div className={`flex flex-col ${messageWithLocation.isUser ? 'items-end' : 'items-start'} space-y-2 w-full max-w-[85%]`}>
       <div className="flex flex-col space-y-1 w-full">
-        {/* Reply Quote */}
-        {message.threadId && parentMessage && (
+        {messageWithLocation.threadId && parentMessage && (
           <div 
             className={`flex items-center space-x-2 px-4 py-2 -mb-1 rounded-t-xl relative ${
-              message.isUser 
+              messageWithLocation.isUser 
                 ? 'bg-primary-700/20 text-white' 
                 : 'bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300'
             }`}
@@ -518,38 +570,42 @@ const Message = ({
           </div>
         )}
 
-        {/* Message Content */}
         <div
           className={`w-full px-4 py-3 ${
-            message.isUser
+            messageWithLocation.isUser
               ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-2xl' +
-                (message.threadId ? ' rounded-tr-none' : ' rounded-br-none')
+                (messageWithLocation.threadId ? ' rounded-tr-none' : ' rounded-br-none')
               : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl' +
-                (message.threadId ? ' rounded-tl-none' : ' rounded-bl-none') +
+                (messageWithLocation.threadId ? ' rounded-tl-none' : ' rounded-bl-none') +
                 ' shadow-sm dark:shadow-none'
           }`}
         >
-          <MessageText text={message.text} />
+          <MessageText text={messageWithLocation.text} />
+          {messageWithLocation.location && (
+            <div className="mt-3">
+              <LocationCard location={messageWithLocation.location} />
+            </div>
+          )}
         </div>
 
         {/* Message Footer */}
         <div className="flex items-center space-x-2 text-xs text-gray-400 dark:text-gray-500 px-1">
-          <TimeStamp date={message.timestamp} />
-          {showThreads && !message.threadId && (
+          <TimeStamp date={messageWithLocation.timestamp} />
+          {showThreads && !messageWithLocation.threadId && (
             <button 
-              onClick={() => onThreadReply(message.id)}
+              onClick={() => onThreadReply(messageWithLocation.id)}
               className="flex items-center space-x-1 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
               <FaReply className="w-3 h-3" />
               <span>Reply</span>
             </button>
           )}
-          {message.replyCount > 0 && (
+          {messageWithLocation.replyCount > 0 && (
             <button
               onClick={() => setIsThreadExpanded(!isThreadExpanded)}
               className="flex items-center space-x-1 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
-              <span>{message.replyCount} {message.replyCount === 1 ? 'reply' : 'replies'}</span>
+              <span>{messageWithLocation.replyCount} {messageWithLocation.replyCount === 1 ? 'reply' : 'replies'}</span>
               <motion.div
                 animate={{ rotate: isThreadExpanded ? 180 : 0 }}
                 transition={{ duration: 0.2 }}
@@ -558,9 +614,9 @@ const Message = ({
               </motion.div>
             </button>
           )}
-          {message.contextTags.length > 0 && (
+          {messageWithLocation.contextTags.length > 0 && (
             <div className="flex space-x-1">
-              {message.contextTags.map((tag, index) => (
+              {messageWithLocation.contextTags.map((tag, index) => (
                 <span 
                   key={index}
                   className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs"
@@ -589,7 +645,7 @@ const Message = ({
               onQuickReply={onQuickReply}
               onThreadReply={onThreadReply}
               showThreads={false}
-              parentMessage={message}
+              parentMessage={messageWithLocation}
             />
           ))}
         </motion.div>
@@ -599,9 +655,9 @@ const Message = ({
       {suggestions.length > 0 && (
         <div className="space-y-2 w-full">
           <QuickReply suggestions={suggestions} onSelect={onQuickReply} />
-          {message.contextTags.length > 0 && (
+          {messageWithLocation.contextTags.length > 0 && (
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              Related to: {message.contextTags.join(', ')}
+              Related to: {messageWithLocation.contextTags.join(', ')}
             </div>
           )}
         </div>
@@ -741,11 +797,7 @@ const generateId = (): string => {
   return Math.random().toString(36).substr(2, 9);
 };
 
-// Update the VoiceFeedback component
-interface VoiceFeedbackProps {
-  error?: string;
-}
-
+// Update the VoiceFeedback component with sound wave visualization
 const VoiceFeedback = ({ error }: VoiceFeedbackProps) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
@@ -755,14 +807,35 @@ const VoiceFeedback = ({ error }: VoiceFeedbackProps) => (
       error ? 'border border-red-500' : ''
     }`}
   >
-    <motion.div
-      animate={{ scale: [1, 1.2, 1] }}
-      transition={{ repeat: Infinity, duration: 1 }}
-      className={`w-2 h-2 rounded-full ${error ? 'bg-red-500' : 'bg-primary-500'}`}
-    />
-    <span className={`text-sm ${error ? 'text-red-500' : 'text-gray-600 dark:text-gray-300'}`}>
-      {error || 'Listening...'}
-    </span>
+    {error ? (
+      <>
+        <motion.div
+          className={`w-2 h-2 rounded-full bg-red-500`}
+        />
+        <span className="text-sm text-red-500">{error}</span>
+      </>
+    ) : (
+      <>
+        <div className="flex items-center space-x-1">
+          {[...Array(8)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="w-0.5 bg-primary-500"
+              animate={{
+                height: [8, 16, 24, 16, 8],
+              }}
+              transition={{
+                duration: 1,
+                repeat: Infinity,
+                delay: i * 0.1,
+                ease: "easeInOut"
+              }}
+            />
+          ))}
+        </div>
+        <span className="text-sm text-gray-600 dark:text-gray-300">Recording...</span>
+      </>
+    )}
   </motion.div>
 );
 
@@ -893,7 +966,7 @@ export default function Chatbot() {
     const newMessageId = generateId();
     const threadId = activeThread || undefined;
     
-    const newUserMessage: Message = { 
+    const newUserMessage: MessageWithLocation = { 
       id: newMessageId,
       text: inputText, 
       isUser: true,
@@ -961,7 +1034,7 @@ export default function Chatbot() {
       }
 
       const data = await response.json();
-      const newAssistantMessage: Message = { 
+      const newAssistantMessage: MessageWithLocation = { 
         id: generateId(),
         text: data.response, 
         isUser: false,
@@ -970,6 +1043,21 @@ export default function Chatbot() {
         contextTags: [context.topic],
         replyCount: 0
       };
+
+      // When creating the assistant's response, check if it's a location request
+      const officeLocation: Location = {
+        address: "Fifth Settlement, Street 90, New Cairo, Cairo",
+        coordinates: {
+          lat: 30.0074,  // Replace with actual coordinates
+          lng: 31.4913   // Replace with actual coordinates
+        }
+      };
+
+      if (inputText.toLowerCase().includes('location') || 
+          inputText.toLowerCase().includes('address') || 
+          inputText.toLowerCase().includes('office')) {
+        newAssistantMessage.location = officeLocation;
+      }
 
       if (activeThread) {
         setThreads(prev => prev.map(t => 
@@ -982,7 +1070,7 @@ export default function Chatbot() {
       setMessages(prev => [...prev, newAssistantMessage]);
     } catch (err: unknown) {
       console.error('Chat error:', err);
-      const errorMessage: Message = {
+      const errorMessage: MessageWithLocation = {
         id: generateId(),
         text: languages[currentLang].error,
         isUser: false,
@@ -1066,7 +1154,7 @@ export default function Chatbot() {
               message={message} 
               isLast={index === messages.length - 1}
               onQuickReply={async (text) => {
-                const newUserMessage: Message = { 
+                const newUserMessage: MessageWithLocation = { 
                   id: generateId(),
                   text, 
                   isUser: true,
@@ -1106,7 +1194,7 @@ export default function Chatbot() {
                   }
 
                   const data = await response.json();
-                  const newAssistantMessage: Message = {
+                  const newAssistantMessage: MessageWithLocation = {
                     id: generateId(),
                     text: data.response,
                     isUser: false,
@@ -1118,7 +1206,7 @@ export default function Chatbot() {
                   setMessages(prev => [...prev, newAssistantMessage]);
                 } catch (err: unknown) {
                   console.error('Quick reply error:', err);
-                  const errorMessage: Message = {
+                  const errorMessage: MessageWithLocation = {
                     id: generateId(),
                     text: languages[currentLang].error,
                     isUser: false,
@@ -1201,18 +1289,48 @@ export default function Chatbot() {
           onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
           placeholder={
             isListening 
-              ? 'Listening...' 
+              ? 'Recording voice message...' 
               : replyingTo 
                 ? 'Type your reply...' 
                 : languages[currentLang].placeholder
           }
           disabled={isLoading || isListening}
-          className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 transition-all duration-200"
+          className={`flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 transition-all duration-200 ${
+            isListening ? 'pr-24' : ''
+          }`}
         />
         {voiceSupported && (
           <div className="relative">
             <AnimatePresence>
-              {isListening && <VoiceFeedback error={voiceError} />}
+              {isListening && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute right-14 bottom-full mb-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg px-4 py-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1">
+                      {[...Array(8)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          className="w-0.5 bg-primary-500"
+                          animate={{
+                            height: [8, 16, 24, 16, 8],
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                            delay: i * 0.1,
+                            ease: "easeInOut"
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Recording...</span>
+                  </div>
+                </motion.div>
+              )}
             </AnimatePresence>
             <motion.button
               onClick={handleVoiceInput}
@@ -1267,91 +1385,107 @@ export default function Chatbot() {
     }
 
     if (isListening) {
+      try {
+        const recognition = window.webkitSpeechRecognition ? 
+          new window.webkitSpeechRecognition() : 
+          new window.SpeechRecognition();
+        recognition.stop();
+        // Send the message when stopping manually
+        if (inputText.trim()) {
+          handleSendMessage();
+        }
+      } catch (error) {
+        console.error('Error stopping recognition:', error);
+      }
       setIsListening(false);
       return;
     }
 
-    // Check for secure context with more specific guidance
-    if (typeof window !== 'undefined') {
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const isSecure = window.location.protocol === 'https:';
-      
-      if (!isLocalhost && !isSecure) {
-        const secureError = process.env.NODE_ENV === 'development'
-          ? 'For development, please access the app through localhost (e.g., http://localhost:3000) to use voice input.'
-          : 'Voice input requires a secure connection (HTTPS). Please ensure you\'re accessing the site with HTTPS.';
-        
-        console.error(secureError);
-        setVoiceError(secureError);
-        setMessages(prev => [...prev, {
-          id: generateId(),
-          text: secureError,
-          isUser: false,
-          timestamp: new Date(),
-          contextTags: ['error'],
-          replyCount: 0
-        }]);
-        return;
-      }
-    }
+    let finalTranscript = '';
+    let recognitionInstance: SpeechRecognitionInstance | null = null;
 
     try {
-      const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-      if (!SpeechRecognition) {
-        throw new Error('Speech recognition is not supported in this browser');
-      }
+      // Create recognition instance
+      const Recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+      recognitionInstance = new Recognition();
 
-      const recognition = new SpeechRecognition();
-      
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = currentLang === 'ar' ? 'ar-EG' : currentLang === 'fr' ? 'fr-FR' : 'en-US';
+      // Configure recognition
+      recognitionInstance.continuous = false;
+      recognitionInstance.interimResults = true;
+      recognitionInstance.maxAlternatives = 1;
+      recognitionInstance.lang = currentLang === 'ar' ? 'ar-EG' : currentLang === 'fr' ? 'fr-FR' : 'en-US';
 
-      recognition.onstart = () => {
+      // Set up event handlers before starting
+      recognitionInstance.onstart = () => {
+        console.log('Speech recognition started');
         setIsListening(true);
         setInputText('');
         setVoiceError(undefined);
+        finalTranscript = '';
       };
 
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-        if (event.results && event.results[0] && event.results[0][0]) {
+      recognitionInstance.onresult = (event: SpeechRecognitionEvent) => {
+        if (event.results && event.results[0]) {
           const transcript = event.results[0][0].transcript;
-          setInputText(prev => prev + ' ' + transcript.trim());
+          if (event.results[0].isFinal) {
+            finalTranscript = transcript;
+          }
+          setInputText(transcript.trim());
         }
       };
 
-      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      recognitionInstance.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error:', event.error);
-        const errorMessage = handleSpeechError(event.error);
+        let errorMessage = '';
+        
+        switch (event.error) {
+          case 'network':
+            errorMessage = 'Please check your internet connection and try again.';
+            break;
+          case 'not-allowed':
+            errorMessage = 'Microphone access was denied. Please allow microphone access in your browser settings.';
+            break;
+          case 'no-speech':
+            errorMessage = 'No speech was detected. Please try speaking again.';
+            break;
+          case 'aborted':
+            errorMessage = 'Voice input was aborted. Please try again.';
+            break;
+          default:
+            errorMessage = `Voice input error: ${event.error}. Please try again.`;
+        }
+        
         setVoiceError(errorMessage);
-        setMessages(prev => [...prev, {
-          id: generateId(),
-          text: errorMessage,
-          isUser: false,
-          timestamp: new Date(),
-          contextTags: ['error'],
-          replyCount: 0
-        }]);
         setIsListening(false);
       };
 
-      recognition.onend = () => {
+      recognitionInstance.onend = () => {
+        console.log('Speech recognition ended');
         setIsListening(false);
+        
+        // Use the final transcript if available, otherwise use the current inputText
+        const messageToSend = finalTranscript.trim() || inputText.trim();
+        if (messageToSend) {
+          // Small delay to ensure UI is updated
+          setTimeout(() => {
+            setInputText(messageToSend);
+            handleSendMessage();
+          }, 100);
+        }
       };
 
-      recognition.start();
+      // Add error handling for start()
+      try {
+        recognitionInstance.start();
+      } catch (error) {
+        console.error('Error starting recognition:', error);
+        setVoiceError('Failed to start voice input. Please try again.');
+        setIsListening(false);
+      }
+
     } catch (error) {
       console.error('Speech recognition error:', error);
-      const errorMessage = 'Voice input is not supported in this browser. Please use Chrome or Edge browser.';
-      setVoiceError(errorMessage);
-      setMessages(prev => [...prev, {
-        id: generateId(),
-        text: errorMessage,
-        isUser: false,
-        timestamp: new Date(),
-        contextTags: ['error'],
-        replyCount: 0
-      }]);
+      setVoiceError('Voice input is not supported in this browser. Please use Chrome or Edge browser.');
       setVoiceSupported(false);
     }
   };
