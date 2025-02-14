@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaRobot, FaTimes, FaPaperPlane, FaTrash, FaClock, FaInfoCircle, FaDollarSign, FaHeadset, FaGlobe, FaDownload } from 'react-icons/fa';
+import { FaRobot, FaTimes, FaPaperPlane, FaTrash, FaClock, FaInfoCircle, FaDollarSign, FaHeadset, FaGlobe, FaDownload, FaReply, FaChevronDown, FaMicrophone, FaMicrophoneAlt } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -14,14 +14,69 @@ interface ChatMessage {
 }
 
 interface Message {
+  id: string;
   text: string;
   isUser: boolean;
   timestamp: Date | string;
+  threadId?: string;  // Parent thread ID if this is a reply
+  contextTags: string[];
+  replyCount: number;  // Make replyCount required with a default of 0
+}
+
+interface Thread {
+  id: string;
+  parentMessageId: string;
+  messages: Message[];
+  isExpanded: boolean;
+}
+
+interface MessageContext {
+  topic: string;
+  relevantMessages: string[];  // IDs of related messages
+  suggestedResponses: string[];
+  confidence: number;
 }
 
 interface QuickReplySuggestion {
   text: string;
   icon?: ReactNode;
+}
+
+// Add TypeScript declarations for Web Speech API
+declare global {
+  interface Window {
+    webkitSpeechRecognition: any;
+  }
+}
+
+type SpeechRecognition = {
+  new (): SpeechRecognitionInstance;
+};
+
+interface SpeechRecognitionInstance extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: (event: Event) => void;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onerror: (event: SpeechRecognitionErrorEvent) => void;
+  onend: (event: Event) => void;
+  start: () => void;
+  stop: () => void;
+}
+
+interface SpeechRecognitionEvent {
+  results: {
+    [key: number]: {
+      [key: number]: {
+        transcript: string;
+      };
+    };
+  };
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
 }
 
 // Context about the company and its services
@@ -252,6 +307,26 @@ Contact:
   - Localisation: Fifth Settlement, Rue 90`
 };
 
+// Update the error handling utility
+const handleSpeechError = (error: string): string => {
+  switch (error) {
+    case 'network':
+      return 'Voice input requires a secure connection (HTTPS) or localhost. Please ensure you\'re using a secure connection.';
+    case 'not-allowed':
+      return 'Microphone access was denied. Please allow microphone access in your browser settings.';
+    case 'no-speech':
+      return 'No speech was detected. Please try speaking again.';
+    case 'aborted':
+      return 'Voice input was aborted. Please try again.';
+    case 'audio-capture':
+      return 'No microphone was found. Please ensure your microphone is properly connected.';
+    case 'service-not-allowed':
+      return 'Speech recognition service is not allowed. Please try using Chrome or Edge browser.';
+    default:
+      return `Voice input error: ${error}. Please try again or use text input instead.`;
+  }
+};
+
 // Fix TypeScript errors and unused variables
 const MessageText = ({ text }: { text: string }) => {
   const router = useRouter();
@@ -393,29 +468,135 @@ const TimeStamp = ({ date }: { date: Date | string }) => {
 // Update Message component to include timestamp
 const Message = ({ 
   message, 
-  isLast, 
-  onQuickReply 
+  isLast,
+  onQuickReply,
+  onThreadReply,
+  thread,
+  showThreads = true,
+  parentMessage
 }: { 
   message: Message; 
   isLast: boolean;
   onQuickReply: (text: string) => void;
+  onThreadReply: (messageId: string) => void;
+  thread?: Thread;
+  showThreads?: boolean;
+  parentMessage?: Message;  // Add parent message for reply reference
 }) => {
+  const [isThreadExpanded, setIsThreadExpanded] = useState(false);
   const suggestions = !message.isUser && isLast ? getQuickReplies(message.text) : [];
   
   return (
-    <div className={`flex flex-col ${message.isUser ? 'items-end' : 'items-start'}`}>
-      <div
-        className={`max-w-[85%] px-4 py-3 ${
-          message.isUser
-            ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-2xl rounded-br-none'
-            : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl rounded-bl-none shadow-sm dark:shadow-none'
-        }`}
-      >
-        <MessageText text={message.text} />
+    <div className={`flex flex-col ${message.isUser ? 'items-end' : 'items-start'} space-y-2 w-full max-w-[85%]`}>
+      <div className="flex flex-col space-y-1 w-full">
+        {/* Reply Quote */}
+        {message.threadId && parentMessage && (
+          <div 
+            className={`flex items-center space-x-2 px-4 py-2 -mb-1 rounded-t-xl relative ${
+              message.isUser 
+                ? 'bg-primary-700/20 text-white' 
+                : 'bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300'
+            }`}
+          >
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-500 dark:bg-primary-400 rounded-tl-xl" />
+            <div className="flex flex-col overflow-hidden pl-2">
+              <span className="text-xs font-medium text-primary-500 dark:text-primary-400">
+                {parentMessage.isUser ? 'You' : 'Apex AI'}
+              </span>
+              <span className="text-sm truncate">
+                {parentMessage.text}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Message Content */}
+        <div
+          className={`w-full px-4 py-3 ${
+            message.isUser
+              ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-2xl' +
+                (message.threadId ? ' rounded-tr-none' : ' rounded-br-none')
+              : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-2xl' +
+                (message.threadId ? ' rounded-tl-none' : ' rounded-bl-none') +
+                ' shadow-sm dark:shadow-none'
+          }`}
+        >
+          <MessageText text={message.text} />
+        </div>
+
+        {/* Message Footer */}
+        <div className="flex items-center space-x-2 text-xs text-gray-400 dark:text-gray-500 px-1">
+          <TimeStamp date={message.timestamp} />
+          {showThreads && !message.threadId && (
+            <button 
+              onClick={() => onThreadReply(message.id)}
+              className="flex items-center space-x-1 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            >
+              <FaReply className="w-3 h-3" />
+              <span>Reply</span>
+            </button>
+          )}
+          {message.replyCount > 0 && (
+            <button
+              onClick={() => setIsThreadExpanded(!isThreadExpanded)}
+              className="flex items-center space-x-1 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            >
+              <span>{message.replyCount} {message.replyCount === 1 ? 'reply' : 'replies'}</span>
+              <motion.div
+                animate={{ rotate: isThreadExpanded ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <FaChevronDown className="w-3 h-3" />
+              </motion.div>
+            </button>
+          )}
+          {message.contextTags.length > 0 && (
+            <div className="flex space-x-1">
+              {message.contextTags.map((tag, index) => (
+                <span 
+                  key={index}
+                  className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-      <TimeStamp date={message.timestamp} />
+
+      {/* Thread Messages */}
+      {isThreadExpanded && thread && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="w-full space-y-4 pl-4 mt-2"
+        >
+          {thread.messages.map((threadMessage, index) => (
+            <Message
+              key={threadMessage.id}
+              message={threadMessage}
+              isLast={index === thread.messages.length - 1}
+              onQuickReply={onQuickReply}
+              onThreadReply={onThreadReply}
+              showThreads={false}
+              parentMessage={message}
+            />
+          ))}
+        </motion.div>
+      )}
+
+      {/* Quick Replies and Context Suggestions */}
       {suggestions.length > 0 && (
-        <QuickReply suggestions={suggestions} onSelect={onQuickReply} />
+        <div className="space-y-2 w-full">
+          <QuickReply suggestions={suggestions} onSelect={onQuickReply} />
+          {message.contextTags.length > 0 && (
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Related to: {message.contextTags.join(', ')}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
@@ -475,16 +656,125 @@ interface StoredMessage {
   timestamp: string;
 }
 
+// Context analysis function
+const analyzeMessageContext = (message: string, messageHistory: Message[]): MessageContext => {
+  const topics = {
+    technical: ['code', 'error', 'bug', 'implementation', 'development'],
+    business: ['pricing', 'cost', 'plan', 'subscription'],
+    support: ['help', 'issue', 'problem', 'assistance'],
+    general: ['information', 'details', 'learn', 'tell']
+  };
+
+  // Determine the topic
+  let maxMatches = 0;
+  let detectedTopic = 'general';
+  
+  Object.entries(topics).forEach(([topic, keywords]) => {
+    const matches = keywords.filter(keyword => 
+      message.toLowerCase().includes(keyword.toLowerCase())
+    ).length;
+    if (matches > maxMatches) {
+      maxMatches = matches;
+      detectedTopic = topic;
+    }
+  });
+
+  // Find relevant messages from history
+  const relevantMessages = messageHistory
+    .filter(msg => {
+      const isRelevantTopic = topics[detectedTopic as keyof typeof topics]
+        .some(keyword => msg.text.toLowerCase().includes(keyword.toLowerCase()));
+      return isRelevantTopic;
+    })
+    .slice(-3)
+    .map(msg => msg.id);
+
+  // Generate suggested responses based on topic
+  const suggestedResponses = getSuggestedResponses(detectedTopic, message);
+
+  return {
+    topic: detectedTopic,
+    relevantMessages,
+    suggestedResponses,
+    confidence: maxMatches / topics[detectedTopic as keyof typeof topics].length
+  };
+};
+
+// Get suggested responses based on topic and context
+const getSuggestedResponses = (topic: string, message: string): string[] => {
+  const suggestions: { [key: string]: string[] } = {
+    technical: [
+      "Could you provide more details about the technical issue?",
+      "Would you like to see some code examples?",
+      "Let me help you troubleshoot this problem."
+    ],
+    business: [
+      "Let me explain our pricing plans in detail.",
+      "Would you like to schedule a consultation?",
+      "I can provide information about our enterprise solutions."
+    ],
+    support: [
+      "I'll help you resolve this issue step by step.",
+      "Would you like me to connect you with our support team?",
+      "Let me check our knowledge base for similar issues."
+    ],
+    general: [
+      "Would you like more specific information about any particular aspect?",
+      "I can provide detailed documentation on this topic.",
+      "Let me know if you need clarification on anything."
+    ]
+  };
+
+  return suggestions[topic] || suggestions.general;
+};
+
+// Generate unique ID for messages
+const generateId = (): string => {
+  return Math.random().toString(36).substr(2, 9);
+};
+
+// Update the VoiceFeedback component
+interface VoiceFeedbackProps {
+  error?: string;
+}
+
+const VoiceFeedback = ({ error }: VoiceFeedbackProps) => (
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: 10 }}
+    className={`absolute bottom-full mb-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-gray-800 rounded-xl shadow-lg px-4 py-2 flex items-center space-x-2 ${
+      error ? 'border border-red-500' : ''
+    }`}
+  >
+    <motion.div
+      animate={{ scale: [1, 1.2, 1] }}
+      transition={{ repeat: Infinity, duration: 1 }}
+      className={`w-2 h-2 rounded-full ${error ? 'bg-red-500' : 'bg-primary-500'}`}
+    />
+    <span className={`text-sm ${error ? 'text-red-500' : 'text-gray-600 dark:text-gray-300'}`}>
+      {error || 'Listening...'}
+    </span>
+  </motion.div>
+);
+
 export default function Chatbot() {
   const [currentLang, setCurrentLang] = useState<keyof typeof languages>('en');
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [threads, setThreads] = useState<Thread[]>([]);
+  const [activeThread, setActiveThread] = useState<string | undefined>(undefined);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [contextSuggestions, setContextSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | undefined>(undefined);
 
   const scrollToMessage = () => {
     if (lastMessageRef.current) {
@@ -500,29 +790,39 @@ export default function Chatbot() {
     scrollToMessage();
   }, [messages]);
 
-  // Update the useEffect with proper typing
+  // Update initial message loading
   useEffect(() => {
     const savedMessages = localStorage.getItem('chatMessages');
     if (savedMessages) {
       try {
         const parsed = JSON.parse(savedMessages) as StoredMessage[];
         setMessages(parsed.map((msg) => ({
-          ...msg,
-          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
+          id: generateId(),
+          text: msg.text,
+          isUser: msg.isUser,
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+          contextTags: [],
+          replyCount: 0
         })));
       } catch (err) {
         console.error('Error parsing saved messages:', err);
         setMessages([{ 
+          id: generateId(),
           text: languages[currentLang].welcome,
           isUser: false,
-          timestamp: new Date()
+          timestamp: new Date(),
+          contextTags: [],
+          replyCount: 0
         }]);
       }
     } else {
       setMessages([{ 
+        id: generateId(),
         text: languages[currentLang].welcome,
         isUser: false,
-        timestamp: new Date()
+        timestamp: new Date(),
+        contextTags: [],
+        replyCount: 0
       }]);
     }
   }, [currentLang]);
@@ -564,20 +864,72 @@ export default function Chatbot() {
     }
   }, [showWelcome]);
 
-  // Update message handling to include timestamps
+  // Handle message threading
+  const handleThreadReply = (parentMessageId: string) => {
+    setActiveThread(parentMessageId);
+    const parentMessage = messages.find(m => m.id === parentMessageId);
+    if (parentMessage) {
+      setReplyingTo(parentMessage);
+    }
+  };
+
+  // Add cancel reply handler
+  const handleCancelReply = () => {
+    setReplyingTo(null);
+    setActiveThread(undefined);
+  };
+
+  // Update message sending with threading and context
   const handleSendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
 
-    const newUserMessage = { 
+    const newMessageId = generateId();
+    const threadId = activeThread || undefined;
+    
+    const newUserMessage: Message = { 
+      id: newMessageId,
       text: inputText, 
       isUser: true,
-      timestamp: new Date()
+      timestamp: new Date(),
+      threadId,
+      contextTags: [],
+      replyCount: 0
     };
+
+    // Update threads if this is a reply
+    if (activeThread) {
+      const existingThread = threads.find(t => t.id === activeThread);
+      if (existingThread) {
+        setThreads(prev => prev.map(t => 
+          t.id === activeThread 
+            ? { ...t, messages: [...t.messages, newUserMessage] }
+            : t
+        ));
+      } else {
+        setThreads(prev => [...prev, {
+          id: activeThread,
+          parentMessageId: activeThread,
+          messages: [newUserMessage],
+          isExpanded: true
+        }]);
+      }
+
+      // Update reply count on parent message
+      setMessages(prev => prev.map(m => 
+        m.id === activeThread 
+          ? { ...m, replyCount: (m.replyCount || 0) + 1 }
+          : m
+      ));
+    }
 
     setMessages(prev => [...prev, newUserMessage]);
     setIsLoading(true);
 
     try {
+      // Analyze context before sending
+      const context = analyzeMessageContext(inputText, messages);
+      setContextSuggestions(context.suggestedResponses);
+
       const recentMessages = messages.slice(-5).map(msg => ({
         role: msg.isUser ? 'user' : 'assistant',
         content: msg.text
@@ -603,32 +955,60 @@ export default function Chatbot() {
       }
 
       const data = await response.json();
-      setMessages(prev => [...prev, { 
+      const newAssistantMessage: Message = { 
+        id: generateId(),
         text: data.response, 
         isUser: false,
-        timestamp: new Date()
-      }]);
+        timestamp: new Date(),
+        threadId: activeThread,
+        contextTags: [context.topic],
+        replyCount: 0
+      };
+
+      if (activeThread) {
+        setThreads(prev => prev.map(t => 
+          t.id === activeThread 
+            ? { ...t, messages: [...t.messages, newAssistantMessage] }
+            : t
+        ));
+      }
+
+      setMessages(prev => [...prev, newAssistantMessage]);
     } catch (err: unknown) {
       console.error('Chat error:', err);
-      setMessages(prev => [...prev, {
+      const errorMessage: Message = {
+        id: generateId(),
         text: languages[currentLang].error,
         isUser: false,
-        timestamp: new Date()
-      }]);
+        timestamp: new Date(),
+        threadId: activeThread,
+        contextTags: ['error'],
+        replyCount: 0
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
       setInputText('');
+      setReplyingTo(null);
+      if (activeThread) {
+        setActiveThread(undefined);
+      }
     }
   };
 
-  // Clear chat history
+  // Clear chat with updated interface
   const handleClearChat = () => {
     localStorage.removeItem('chatMessages');
     setMessages([{ 
+      id: generateId(),
       text: languages[currentLang].welcome,
       isUser: false,
-      timestamp: new Date()
+      timestamp: new Date(),
+      contextTags: [],
+      replyCount: 0
     }]);
+    setThreads([]);
+    setActiveThread(undefined);
   };
 
   // Button animation variants
@@ -647,6 +1027,347 @@ export default function Chatbot() {
     },
     tap: { scale: 0.9 }
   };
+
+  // Update the main messages rendering in Chatbot component
+  const renderMessages = () => (
+    <div 
+      className="flex-1 p-6 space-y-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
+      style={{ 
+        overscrollBehavior: 'contain',
+        scrollbarWidth: 'thin',
+        scrollbarGutter: 'stable'
+      }}
+    >
+      {messages.map((message, index) => {
+        const thread = message.replyCount > 0 
+          ? threads.find(t => t.parentMessageId === message.id)
+          : undefined;
+        
+        const parentMessage = message.threadId 
+          ? messages.find(m => m.id === message.threadId)
+          : undefined;
+
+        return (
+          <motion.div
+            key={message.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} w-full`}
+            ref={index === messages.length - 1 ? lastMessageRef : null}
+          >
+            <Message 
+              message={message} 
+              isLast={index === messages.length - 1}
+              onQuickReply={async (text) => {
+                const newUserMessage: Message = { 
+                  id: generateId(),
+                  text, 
+                  isUser: true,
+                  timestamp: new Date(),
+                  contextTags: [],
+                  replyCount: 0
+                };
+                
+                setMessages(prev => [...prev, newUserMessage]);
+                setIsLoading(true);
+
+                try {
+                  const context = analyzeMessageContext(text, messages);
+                  setContextSuggestions(context.suggestedResponses);
+
+                  const recentMessages = messages.slice(-5).map(msg => ({
+                    role: msg.isUser ? 'user' : 'assistant',
+                    content: msg.text
+                  } as ChatMessage));
+
+                  const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      messages: [
+                        { role: 'system', content: SYSTEM_CONTEXTS[currentLang] },
+                        ...recentMessages,
+                        { role: 'user', content: text }
+                      ],
+                      language: currentLang
+                    }),
+                  });
+
+                  if (!response.ok) {
+                    throw new Error('Failed to get response');
+                  }
+
+                  const data = await response.json();
+                  const newAssistantMessage: Message = {
+                    id: generateId(),
+                    text: data.response,
+                    isUser: false,
+                    timestamp: new Date(),
+                    contextTags: [context.topic],
+                    replyCount: 0
+                  };
+                  
+                  setMessages(prev => [...prev, newAssistantMessage]);
+                } catch (err: unknown) {
+                  console.error('Quick reply error:', err);
+                  const errorMessage: Message = {
+                    id: generateId(),
+                    text: languages[currentLang].error,
+                    isUser: false,
+                    timestamp: new Date(),
+                    contextTags: ['error'],
+                    replyCount: 0
+                  };
+                  setMessages(prev => [...prev, errorMessage]);
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+              onThreadReply={handleThreadReply}
+              thread={thread}
+              parentMessage={parentMessage}
+            />
+          </motion.div>
+        );
+      })}
+      {isLoading && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex justify-start"
+        >
+          <div className="max-w-[85%] px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl rounded-bl-none shadow-sm dark:shadow-none">
+            <div className="flex space-x-1.5">
+              <motion.div 
+                className="w-1.5 h-1.5 bg-primary-500 rounded-full"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+              />
+              <motion.div 
+                className="w-1.5 h-1.5 bg-primary-500 rounded-full"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 0.8, delay: 0.2, repeat: Infinity }}
+              />
+              <motion.div 
+                className="w-1.5 h-1.5 bg-primary-500 rounded-full"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 0.8, delay: 0.4, repeat: Infinity }}
+              />
+            </div>
+          </div>
+        </motion.div>
+      )}
+      <div ref={messagesEndRef} />
+    </div>
+  );
+
+  // Update the input area JSX
+  const renderInput = () => (
+    <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
+      {replyingTo && (
+        <div className="mb-2 px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-1 h-12 bg-primary-500 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-xs font-medium text-primary-500 dark:text-primary-400">
+                Replying to {replyingTo.isUser ? 'yourself' : 'Apex AI'}
+              </span>
+              <span className="text-sm text-gray-600 dark:text-gray-300 truncate max-w-[200px]">
+                {replyingTo.text}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={handleCancelReply}
+            className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+          >
+            <FaTimes className="w-4 h-4 text-gray-400" />
+          </button>
+        </div>
+      )}
+      <div className="flex space-x-2 relative">
+        <input
+          type="text"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+          placeholder={
+            isListening 
+              ? 'Listening...' 
+              : replyingTo 
+                ? 'Type your reply...' 
+                : languages[currentLang].placeholder
+          }
+          disabled={isLoading || isListening}
+          className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 transition-all duration-200"
+        />
+        {voiceSupported && (
+          <div className="relative">
+            <AnimatePresence>
+              {isListening && <VoiceFeedback error={voiceError} />}
+            </AnimatePresence>
+            <motion.button
+              onClick={handleVoiceInput}
+              disabled={isLoading}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`p-3 rounded-xl transition-all duration-200 ${
+                isListening
+                  ? 'bg-red-500 hover:bg-red-600 shadow-lg ring-4 ring-red-500/20'
+                  : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              <motion.div
+                animate={isListening ? {
+                  scale: [1, 1.2, 1],
+                  rotate: [0, 10, -10, 0]
+                } : {}}
+                transition={{ 
+                  repeat: Infinity, 
+                  duration: 1.5,
+                  ease: "easeInOut"
+                }}
+              >
+                {isListening ? (
+                  <FaMicrophone className="w-5 h-5 text-white" />
+                ) : (
+                  <FaMicrophoneAlt className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                )}
+              </motion.div>
+            </motion.button>
+          </div>
+        )}
+        <motion.button
+          onClick={handleSendMessage}
+          disabled={isLoading || (isListening && !inputText)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="p-3 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl hover:opacity-90 disabled:opacity-50 transition-all duration-200"
+        >
+          <FaPaperPlane className="w-5 h-5" />
+        </motion.button>
+      </div>
+    </div>
+  );
+
+  // Update the handleVoiceInput function
+  const handleVoiceInput = () => {
+    if (!voiceSupported) {
+      console.error('Speech recognition not supported');
+      setVoiceError('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+
+    // Check for secure context with more specific guidance
+    if (typeof window !== 'undefined') {
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const isSecure = window.location.protocol === 'https:';
+      
+      if (!isLocalhost && !isSecure) {
+        const secureError = process.env.NODE_ENV === 'development'
+          ? 'For development, please access the app through localhost (e.g., http://localhost:3000) to use voice input.'
+          : 'Voice input requires a secure connection (HTTPS). Please ensure you\'re accessing the site with HTTPS.';
+        
+        console.error(secureError);
+        setVoiceError(secureError);
+        setMessages(prev => [...prev, {
+          id: generateId(),
+          text: secureError,
+          isUser: false,
+          timestamp: new Date(),
+          contextTags: ['error'],
+          replyCount: 0
+        }]);
+        return;
+      }
+    }
+
+    try {
+      const SpeechRecognition = window.webkitSpeechRecognition || (window as any).SpeechRecognition;
+      if (!SpeechRecognition) {
+        throw new Error('Speech recognition is not supported in this browser');
+      }
+
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = currentLang === 'ar' ? 'ar-EG' : currentLang === 'fr' ? 'fr-FR' : 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setInputText('');
+        setVoiceError(undefined);
+      };
+
+      recognition.onresult = (event: any) => {
+        if (event.results && event.results[0] && event.results[0][0]) {
+          const transcript = event.results[0][0].transcript;
+          setInputText(prev => prev + ' ' + transcript.trim());
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        const errorMessage = handleSpeechError(event.error);
+        setVoiceError(errorMessage);
+        setMessages(prev => [...prev, {
+          id: generateId(),
+          text: errorMessage,
+          isUser: false,
+          timestamp: new Date(),
+          contextTags: ['error'],
+          replyCount: 0
+        }]);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.start();
+    } catch (error) {
+      console.error('Speech recognition error:', error);
+      const errorMessage = 'Voice input is not supported in this browser. Please use Chrome or Edge browser.';
+      setVoiceError(errorMessage);
+      setMessages(prev => [...prev, {
+        id: generateId(),
+        text: errorMessage,
+        isUser: false,
+        timestamp: new Date(),
+        contextTags: ['error'],
+        replyCount: 0
+      }]);
+      setVoiceSupported(false);
+    }
+  };
+
+  // Add the voice support check
+  useEffect(() => {
+    const checkVoiceSupport = () => {
+      try {
+        const supported = 'webkitSpeechRecognition' in window;
+        setVoiceSupported(supported);
+        if (!supported) {
+          console.log('Speech recognition not supported in this browser');
+        }
+      } catch (error) {
+        console.error('Error checking voice support:', error);
+        setVoiceSupported(false);
+      }
+    };
+
+    checkVoiceSupport();
+  }, []);
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -749,129 +1470,10 @@ export default function Chatbot() {
             </div>
 
             {/* Messages */}
-            <div 
-              className="flex-1 p-6 space-y-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
-              style={{ 
-                overscrollBehavior: 'contain',
-                scrollbarWidth: 'thin',
-                scrollbarGutter: 'stable'
-              }}
-            >
-              {messages.map((message, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-                  ref={index === messages.length - 1 ? lastMessageRef : null}
-                >
-                  <Message 
-                    message={message} 
-                    isLast={index === messages.length - 1}
-                    onQuickReply={async (text) => {
-                      const newUserMessage = { text, isUser: true, timestamp: new Date() };
-                      setMessages(prev => [...prev, newUserMessage]);
-                      setIsLoading(true);
-
-                      try {
-                        const recentMessages = messages.slice(-5).map(msg => ({
-                          role: msg.isUser ? 'user' : 'assistant',
-                          content: msg.text
-                        } as ChatMessage));
-
-                        const response = await fetch('/api/chat', {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({
-                            messages: [
-                              { role: 'system', content: SYSTEM_CONTEXTS[currentLang] },
-                              ...recentMessages,
-                              { role: 'user', content: text }
-                            ],
-                            language: currentLang
-                          }),
-                        });
-
-                        if (!response.ok) {
-                          throw new Error('Failed to get response');
-                        }
-
-                        const data = await response.json();
-                        setMessages(prev => [...prev, { 
-                          text: data.response, 
-                          isUser: false,
-                          timestamp: new Date()
-                        }]);
-                      } catch (err: unknown) {
-                        console.error('Quick reply error:', err);
-                        setMessages(prev => [...prev, {
-                          text: languages[currentLang].error,
-                          isUser: false,
-                          timestamp: new Date()
-                        }]);
-                      } finally {
-                        setIsLoading(false);
-                      }
-                    }}
-                  />
-                </motion.div>
-              ))}
-              {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex justify-start"
-                >
-                  <div className="max-w-[85%] px-4 py-3 bg-white dark:bg-gray-800 rounded-2xl rounded-bl-none shadow-sm dark:shadow-none">
-                    <div className="flex space-x-1.5">
-                      <motion.div 
-                        className="w-1.5 h-1.5 bg-primary-500 rounded-full"
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 0.8, repeat: Infinity }}
-                      />
-                      <motion.div 
-                        className="w-1.5 h-1.5 bg-primary-500 rounded-full"
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 0.8, delay: 0.2, repeat: Infinity }}
-                      />
-                      <motion.div 
-                        className="w-1.5 h-1.5 bg-primary-500 rounded-full"
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 0.8, delay: 0.4, repeat: Infinity }}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
+            {renderMessages()}
 
             {/* Input */}
-            <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder={languages[currentLang].placeholder}
-                  disabled={isLoading}
-                  className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 transition-all duration-200"
-                />
-                <motion.button
-                  onClick={handleSendMessage}
-                  disabled={isLoading}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="px-4 py-3 bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-xl hover:opacity-90 disabled:opacity-50 transition-all duration-200"
-                >
-                  <FaPaperPlane className="w-4 h-4" />
-                </motion.button>
-              </div>
-            </div>
+            {renderInput()}
           </motion.div>
         )}
       </AnimatePresence>
