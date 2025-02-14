@@ -1282,6 +1282,11 @@ export default function Chatbot() {
         </div>
       )}
       <div className="flex space-x-2 relative">
+        <AnimatePresence>
+          {(isListening || voiceError) && (
+            <VoiceFeedback error={voiceError} />
+          )}
+        </AnimatePresence>
         <input
           type="text"
           value={inputText}
@@ -1436,25 +1441,7 @@ export default function Chatbot() {
 
       recognitionInstance.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error:', event.error);
-        let errorMessage = '';
-        
-        switch (event.error) {
-          case 'network':
-            errorMessage = 'Please check your internet connection and try again.';
-            break;
-          case 'not-allowed':
-            errorMessage = 'Microphone access was denied. Please allow microphone access in your browser settings.';
-            break;
-          case 'no-speech':
-            errorMessage = 'No speech was detected. Please try speaking again.';
-            break;
-          case 'aborted':
-            errorMessage = 'Voice input was aborted. Please try again.';
-            break;
-          default:
-            errorMessage = `Voice input error: ${event.error}. Please try again.`;
-        }
-        
+        const errorMessage = handleSpeechError(event.error);
         setVoiceError(errorMessage);
         setIsListening(false);
       };
