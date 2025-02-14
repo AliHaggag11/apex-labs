@@ -83,7 +83,7 @@ const cleanMarkdown = (text: string) => {
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const { messages, language } = await req.json();
     
     // Get the model
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
@@ -91,7 +91,17 @@ export async function POST(req: Request) {
     // Prepare the message with context
     const systemContext = messages.find((msg: any) => msg.role === 'system')?.content || '';
     const userMessage = messages[messages.length - 1].content;
+
+    // Add language instruction
+    const languageInstructions = {
+      ar: "IMPORTANT: You must respond in Arabic (العربية) regardless of the question or content. Translate any information not in the context to Arabic.",
+      fr: "IMPORTANT: Vous devez répondre en français quelle que soit la question ou le contenu. Traduisez en français toute information qui n'est pas dans le contexte.",
+      en: "Respond in English."
+    };
+
     const messageWithContext = `${systemContext}
+
+${languageInstructions[language as keyof typeof languageInstructions]}
 
 User message: ${userMessage}
 

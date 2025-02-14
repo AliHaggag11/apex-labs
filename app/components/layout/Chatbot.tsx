@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaRobot, FaTimes, FaPaperPlane, FaTrash, FaClock, FaInfoCircle, FaDollarSign, FaHeadset } from 'react-icons/fa';
+import { FaRobot, FaTimes, FaPaperPlane, FaTrash, FaClock, FaInfoCircle, FaDollarSign, FaHeadset, FaGlobe, FaDownload } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -125,6 +125,123 @@ Page Linking Guidelines:
 
 Please provide accurate information about our services and guide users to the most relevant solutions for their needs.`;
 
+// Add language support
+const languages = {
+  en: {
+    welcome: "Hi there! 👋 I'm Apex AI. How can I help you today?",
+    placeholder: "Type your message...",
+    online: "Online",
+    clearChat: "Clear chat history",
+    exportChat: "Export chat",
+    languageSelect: "Select language",
+    error: "I apologize, but I'm having trouble connecting right now. Please try again later or contact our support team."
+  },
+  ar: {
+    welcome: "مرحباً! 👋 أنا Apex AI. كيف يمكنني مساعدتك اليوم؟",
+    placeholder: "اكتب رسالتك...",
+    online: "متصل",
+    clearChat: "مسح المحادثة",
+    exportChat: "تصدير المحادثة",
+    languageSelect: "اختر اللغة",
+    error: "عذراً، لدي مشكلة في الاتصال حالياً. يرجى المحاولة مرة أخرى لاحقاً أو الاتصال بفريق الدعم."
+  },
+  fr: {
+    welcome: "Bonjour! 👋 Je suis Apex AI. Comment puis-je vous aider aujourd'hui?",
+    placeholder: "Tapez votre message...",
+    online: "En ligne",
+    clearChat: "Effacer l'historique",
+    exportChat: "Exporter la conversation",
+    languageSelect: "Choisir la langue",
+    error: "Je suis désolé, mais j'ai des problèmes de connexion pour le moment. Veuillez réessayer plus tard ou contacter notre équipe d'assistance."
+  }
+};
+
+// Add language-specific system contexts
+const SYSTEM_CONTEXTS = {
+  en: SYSTEM_CONTEXT,
+  ar: `أنت مساعد ذكاء اصطناعي يُدعى "Apex AI" لشركة Apex Labs، وهي شركة متخصصة في التحول الرقمي وحلول الذكاء الاصطناعي.
+
+يجب أن تكون ردودك ودية وطبيعية ومحادثة - مثل زميل بشري مفيد وليس ذكاءً اصطناعياً رسمياً. احتفظ بالتحيات الأولية بسيطة ودافئة. قدم معلومات مفصلة فقط عند الطلب.
+
+خدماتنا:
+1. البنية التحتية لتكنولوجيا المعلومات والسحابة
+   - الترحيل السحابي والنشر الهجين
+   - حلول VPN والأمن السيبراني
+   - تخطيط التعافي من الكوارث
+
+2. أتمتة العمليات التجارية
+   - تنفيذ ERP و CRM
+   - حلول أتمتة الموارد البشرية
+   - تحسين سير العمل الرقمي
+
+3. حلول التجارة الإلكترونية
+   - تطوير متجر إلكتروني مخصص
+   - دمج الدفع الرقمي
+   - تنفيذ نظام نقاط البيع
+
+4. التسويق الرقمي
+   - استراتيجيات التسويق المدعومة بالذكاء الاصطناعي
+   - تحسين محركات البحث
+   - إدارة الحملات الآلية
+
+5. إدارة البيانات
+   - لوحات معلومات ذكاء الأعمال
+   - أبحاث السوق القائمة على الذكاء الاصطناعي
+   - خدمات رقمنة البيانات
+
+معلومات الاتصال:
+• البريد الإلكتروني: contact@apexlabs.eg
+  - وقت الرد: خلال 24 ساعة
+• الهاتف: 5678-1234 (2) 20+
+  - متاح: الأحد - الخميس، 9:00 صباحاً - 5:00 مساءً بتوقيت مصر
+• المكتب: القاهرة الجديدة، القاهرة
+  - الموقع: التجمع الخامس، شارع 90`,
+  fr: `Vous êtes un assistant IA appelé "Apex AI" pour Apex Labs, une entreprise spécialisée dans la transformation digitale et les solutions d'IA.
+
+Vos réponses doivent être amicales, naturelles et conversationnelles - comme un collègue humain serviable plutôt qu'une IA formelle. Gardez les salutations initiales simples et chaleureuses. Ne fournissez des informations détaillées que lorsqu'on vous le demande.
+
+Nos Services:
+1. Infrastructure IT & Cloud
+   - Migration cloud et déploiement hybride
+   - Solutions VPN et cybersécurité
+   - Planification de reprise après sinistre
+
+2. Automatisation des Processus
+   - Implémentation ERP et CRM
+   - Solutions RH automatisées
+   - Optimisation des flux numériques
+
+3. Solutions E-commerce
+   - Développement de boutique en ligne personnalisée
+   - Intégration de paiement numérique
+   - Implémentation de système POS
+
+4. Marketing Digital
+   - Stratégies marketing basées sur l'IA
+   - Optimisation SEO
+   - Gestion automatisée des campagnes
+
+5. Gestion des Données
+   - Tableaux de bord business intelligence
+   - Études de marché basées sur l'IA
+   - Services de numérisation de données
+
+Contact:
+• Email: contact@apexlabs.eg
+  - Temps de réponse: Sous 24 heures
+• Téléphone: +20 (2) 1234-5678
+  - Disponible: Dimanche - Jeudi, 9h00 - 17h00 EET
+• Bureau: New Cairo, Le Caire
+  - Localisation: Fifth Settlement, Rue 90`
+};
+
+// Update Message type to include timestamp
+type Message = {
+  text: string;
+  isUser: boolean;
+  timestamp: Date | string;
+};
+
 const MessageText = ({ text }: { text: string }) => {
   const router = useRouter();
   
@@ -235,13 +352,39 @@ const getQuickReplies = (lastMessage: string) => {
   return [];
 };
 
-// Update the message component to include quick replies
+// Add TimeStamp component
+const TimeStamp = ({ date }: { date: Date | string }) => {
+  const formatTime = (dateInput: Date | string) => {
+    try {
+      const dateObj = dateInput instanceof Date ? dateInput : new Date(dateInput);
+      if (isNaN(dateObj.getTime())) {
+        return '';
+      }
+      return new Intl.DateTimeFormat('default', {
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true
+      }).format(dateObj);
+    } catch (error) {
+      console.error('Error formatting time:', error);
+      return '';
+    }
+  };
+
+  return (
+    <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+      {formatTime(date)}
+    </span>
+  );
+};
+
+// Update Message component to include timestamp
 const Message = ({ 
   message, 
   isLast, 
   onQuickReply 
 }: { 
-  message: { text: string; isUser: boolean }; 
+  message: Message; 
   isLast: boolean;
   onQuickReply: (text: string) => void;
 }) => {
@@ -258,6 +401,7 @@ const Message = ({
       >
         <MessageText text={message.text} />
       </div>
+      <TimeStamp date={message.timestamp} />
       {suggestions.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -282,10 +426,58 @@ const Message = ({
   );
 };
 
+// Add Language Selector component
+const LanguageSelector = ({ 
+  currentLang, 
+  onLanguageChange 
+}: { 
+  currentLang: keyof typeof languages;
+  onLanguageChange: (lang: keyof typeof languages) => void;
+}) => (
+  <div className="relative group">
+    <button className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm">
+      <FaGlobe className="w-4 h-4 text-white/80" />
+    </button>
+    <div className="absolute right-0 mt-2 py-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+      {Object.entries(languages).map(([code, lang]) => (
+        <button
+          key={code}
+          onClick={() => onLanguageChange(code as keyof typeof languages)}
+          className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 ${
+            currentLang === code ? 'text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'
+          }`}
+        >
+          {lang.languageSelect}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+// Add Export Chat function
+const exportChat = (messages: Message[]) => {
+  const chatHistory = messages.map(msg => ({
+    role: msg.isUser ? 'User' : 'Apex AI',
+    message: msg.text,
+    time: msg.timestamp instanceof Date ? msg.timestamp.toLocaleString() : new Date(msg.timestamp).toLocaleString()
+  }));
+
+  const blob = new Blob([JSON.stringify(chatHistory, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `chat-history-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
 export default function Chatbot() {
+  const [currentLang, setCurrentLang] = useState<keyof typeof languages>('en');
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [messages, setMessages] = useState<Array<{ text: string; isUser: boolean }>>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -310,14 +502,29 @@ export default function Chatbot() {
   useEffect(() => {
     const savedMessages = localStorage.getItem('chatMessages');
     if (savedMessages) {
-      setMessages(JSON.parse(savedMessages));
+      try {
+        const parsed = JSON.parse(savedMessages);
+        // Safely convert stored timestamps back to Date objects
+        setMessages(parsed.map((msg: any) => ({
+          ...msg,
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
+        })));
+      } catch (error) {
+        console.error('Error parsing saved messages:', error);
+        setMessages([{ 
+          text: languages[currentLang].welcome,
+          isUser: false,
+          timestamp: new Date()
+        }]);
+      }
     } else {
       setMessages([{ 
-        text: "Hi there! 👋 I'm Apex AI. How can I help you today?",
-        isUser: false 
+        text: languages[currentLang].welcome,
+        isUser: false,
+        timestamp: new Date()
       }]);
     }
-  }, []);
+  }, [currentLang]);
 
   // Save messages to localStorage whenever they change
   useEffect(() => {
@@ -356,14 +563,25 @@ export default function Chatbot() {
     }
   }, [showWelcome]);
 
+  // Update message handling to include timestamps
   const handleSendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
 
-    // Add user message
-    setMessages(prev => [...prev, { text: inputText, isUser: true }]);
+    const newUserMessage = { 
+      text: inputText, 
+      isUser: true,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, newUserMessage]);
     setIsLoading(true);
 
     try {
+      const recentMessages = messages.slice(-5).map(msg => ({
+        role: msg.isUser ? 'user' : 'assistant',
+        content: msg.text
+      }));
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -371,9 +589,11 @@ export default function Chatbot() {
         },
         body: JSON.stringify({
           messages: [
-            { role: 'system', content: SYSTEM_CONTEXT },
-            { role: 'user', content: inputText } // Send only the current message
-          ]
+            { role: 'system', content: SYSTEM_CONTEXTS[currentLang] },
+            ...recentMessages,
+            { role: 'user', content: inputText }
+          ],
+          language: currentLang
         }),
       });
 
@@ -382,11 +602,16 @@ export default function Chatbot() {
       }
 
       const data = await response.json();
-      setMessages(prev => [...prev, { text: data.response, isUser: false }]);
+      setMessages(prev => [...prev, { 
+        text: data.response, 
+        isUser: false,
+        timestamp: new Date()
+      }]);
     } catch (error) {
       setMessages(prev => [...prev, {
-        text: "I apologize, but I'm having trouble connecting right now. Please try again later or contact our support team.",
-        isUser: false
+        text: languages[currentLang].error,
+        isUser: false,
+        timestamp: new Date()
       }]);
     } finally {
       setIsLoading(false);
@@ -398,8 +623,9 @@ export default function Chatbot() {
   const handleClearChat = () => {
     localStorage.removeItem('chatMessages');
     setMessages([{ 
-      text: "Hi there! 👋 I'm Apex AI. How can I help you today?",
-      isUser: false 
+      text: languages[currentLang].welcome,
+      isUser: false,
+      timestamp: new Date()
     }]);
   };
 
@@ -429,23 +655,23 @@ export default function Chatbot() {
             <WelcomeMessage onClose={() => setShowWelcome(false)} />
           )}
         </AnimatePresence>
-        <motion.button
+      <motion.button
           onClick={() => {
             setIsOpen(!isOpen);
             setShowWelcome(false);
           }}
-          variants={buttonVariants}
-          initial="initial"
-          whileHover="hover"
-          whileTap="tap"
+        variants={buttonVariants}
+        initial="initial"
+        whileHover="hover"
+        whileTap="tap"
           className="w-14 h-14 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-500 text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300"
           style={{
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
           }}
-        >
-          <motion.div
-            animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.3 }}
+      >
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.3 }}
             className="flex items-center justify-center"
           >
             {isOpen ? (
@@ -453,8 +679,8 @@ export default function Chatbot() {
             ) : (
               <FaRobot className="w-6 h-6 text-white/90" />
             )}
-          </motion.div>
-        </motion.button>
+        </motion.div>
+      </motion.button>
       </div>
 
       {/* Chat Window */}
@@ -472,9 +698,10 @@ export default function Chatbot() {
               top: isMobile ? '1rem' : 'auto',
               bottom: isMobile ? '5rem' : '5rem',
               width: isMobile ? 'auto' : '380px',
-              height: isMobile ? 'calc(100vh - 6rem)' : '580px'
+              height: isMobile ? 'calc(100vh - 6rem)' : '580px',
+              overflowY: 'hidden'
             }}
-            className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-gray-100 dark:border-gray-800"
+            className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl flex flex-col border border-gray-100 dark:border-gray-800"
           >
             {/* Header */}
             <div className="px-6 py-4 bg-gradient-to-r from-primary-600 to-primary-500 text-white">
@@ -485,14 +712,25 @@ export default function Chatbot() {
                   </div>
                   <div>
                     <h3 className="font-medium text-base">Apex AI</h3>
-                    <p className="text-xs text-white/80">Online</p>
+                    <p className="text-xs text-white/80">{languages[currentLang].online}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
+                  <LanguageSelector 
+                    currentLang={currentLang} 
+                    onLanguageChange={setCurrentLang} 
+                  />
                   <button
+                    onClick={() => exportChat(messages)}
+                    className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
+                    title={languages[currentLang].exportChat}
+                  >
+                    <FaDownload className="w-4 h-4 text-white/80" />
+                  </button>
+                  <button 
                     onClick={handleClearChat}
                     className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
-                    title="Clear chat history"
+                    title={languages[currentLang].clearChat}
                   >
                     <FaTrash className="w-4 h-4 text-white/80" />
                   </button>
@@ -502,14 +740,21 @@ export default function Chatbot() {
                       className="p-2 hover:bg-white/10 rounded-xl transition-colors backdrop-blur-sm"
                     >
                       <FaTimes className="w-4 h-4 text-white/80" />
-                    </button>
-                  )}
+                  </button>
+                )}
                 </div>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-gray-50 dark:bg-gray-900">
+            <div 
+              className="flex-1 p-6 space-y-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
+              style={{ 
+                overscrollBehavior: 'contain',
+                scrollbarWidth: 'thin',
+                scrollbarGutter: 'stable'
+              }}
+            >
               {messages.map((message, index) => (
                 <motion.div
                   key={index}
@@ -523,11 +768,16 @@ export default function Chatbot() {
                     message={message} 
                     isLast={index === messages.length - 1}
                     onQuickReply={async (text) => {
-                      // Add user message
-                      setMessages(prev => [...prev, { text, isUser: true }]);
+                      const newUserMessage = { text, isUser: true, timestamp: new Date() };
+                      setMessages(prev => [...prev, newUserMessage]);
                       setIsLoading(true);
 
                       try {
+                        const recentMessages = messages.slice(-5).map(msg => ({
+                          role: msg.isUser ? 'user' : 'assistant',
+                          content: msg.text
+                        }));
+
                         const response = await fetch('/api/chat', {
                           method: 'POST',
                           headers: {
@@ -535,9 +785,11 @@ export default function Chatbot() {
                           },
                           body: JSON.stringify({
                             messages: [
-                              { role: 'system', content: SYSTEM_CONTEXT },
+                              { role: 'system', content: SYSTEM_CONTEXTS[currentLang] },
+                              ...recentMessages,
                               { role: 'user', content: text }
-                            ]
+                            ],
+                            language: currentLang
                           }),
                         });
 
@@ -546,11 +798,16 @@ export default function Chatbot() {
                         }
 
                         const data = await response.json();
-                        setMessages(prev => [...prev, { text: data.response, isUser: false }]);
+                        setMessages(prev => [...prev, { 
+                          text: data.response, 
+                          isUser: false,
+                          timestamp: new Date()
+                        }]);
                       } catch (error) {
                         setMessages(prev => [...prev, {
-                          text: "I apologize, but I'm having trouble connecting right now. Please try again later or contact our support team.",
-                          isUser: false
+                          text: languages[currentLang].error,
+                          isUser: false,
+                          timestamp: new Date()
                         }]);
                       } finally {
                         setIsLoading(false);
@@ -597,7 +854,7 @@ export default function Chatbot() {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Type your message..."
+                  placeholder={languages[currentLang].placeholder}
                   disabled={isLoading}
                   className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 transition-all duration-200"
                 />
