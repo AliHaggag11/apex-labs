@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { ReactNode, ReactElement } from 'react';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import { useTheme } from 'next-themes';
 
 // Type definitions
 interface ChatMessage {
@@ -498,6 +499,20 @@ interface MessageWithLocation extends Message {
   showScheduler?: boolean;
 }
 
+interface StoredMessage {
+  text: string;
+  isUser: boolean;
+  timestamp: string;
+}
+
+interface LiveChatStatus {
+  isConnecting: boolean;
+  isConnected: boolean;
+  queuePosition?: number;
+  agentName?: string;
+  estimatedWaitTime?: number;
+}
+
 // Add the LocationCard component before the Message component
 const LocationCard = ({ location }: { location: Location }) => (
   <div className="w-full max-w-[300px] bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
@@ -759,6 +774,84 @@ const ChatContext = createContext<ChatContextType>({
   setMessages: () => {},
 });
 
+// Add new interfaces after the existing ones
+interface LiveChatStatus {
+  isConnecting: boolean;
+  isConnected: boolean;
+  queuePosition?: number;
+  agentName?: string;
+  estimatedWaitTime?: number;
+}
+
+// Add the ConnectingInterface component before the Message component
+const ConnectingInterface = ({ 
+  status,
+  onCancel 
+}: { 
+  status: LiveChatStatus;
+  onCancel: () => void;
+}) => (
+  <div className="w-full px-4 py-3 bg-white dark:bg-gray-800 rounded-xl space-y-4">
+    <div className="flex items-center justify-between">
+      <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+        {status.isConnected 
+          ? `Connected with ${status.agentName}`
+          : 'Connecting to Support Agent'}
+      </h3>
+      {!status.isConnected && (
+        <button
+          onClick={onCancel}
+          className="p-1.5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        >
+          <FaTimes className="w-4 h-4" />
+        </button>
+      )}
+    </div>
+    
+    {!status.isConnected && (
+      <div className="space-y-3">
+        <div className="flex items-center space-x-3">
+          <div className="flex space-x-1">
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="w-2 h-2 bg-primary-500 rounded-full"
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [1, 0.5, 1]
+                }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                  delay: i * 0.2
+                }}
+              />
+            ))}
+          </div>
+          <span className="text-sm text-gray-600 dark:text-gray-300">
+            {status.queuePosition === 1 
+              ? "You're next in line"
+              : status.queuePosition 
+                ? `Position in queue: ${status.queuePosition}`
+                : 'Connecting to available agent...'}
+          </span>
+        </div>
+        
+        {status.estimatedWaitTime && (
+          <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+            <FaClock className="w-4 h-4" />
+            <span>Estimated wait time: ~{status.estimatedWaitTime} minutes</span>
+          </div>
+        )}
+        
+        <div className="text-xs text-gray-400 dark:text-gray-500">
+          Business hours: Sun-Thu, 9:00 AM - 5:00 PM EET
+        </div>
+      </div>
+    )}
+  </div>
+);
+
 // Update the Message component return type
 const Message = ({ 
   message: messageWithLocation, 
@@ -803,7 +896,7 @@ const Message = ({
     
     setMessages(prev => [...prev, confirmationMessage]);
   };
-
+  
   return (
     <div className={`flex flex-col ${messageWithLocation.isUser ? 'items-end' : 'items-start'} space-y-2 w-full max-w-[85%]`}>
       <div className={`w-full px-4 py-3 ${
@@ -974,13 +1067,6 @@ const exportChat = (messages: Message[]) => {
   URL.revokeObjectURL(url);
 };
 
-// Fix any type in localStorage effect
-interface StoredMessage {
-  text: string;
-  isUser: boolean;
-  timestamp: string;
-}
-
 // Context analysis function
 const analyzeMessageContext = (message: string, messageHistory: Message[]): MessageContext => {
   const topics = {
@@ -1093,7 +1179,7 @@ const VoiceFeedback = ({ error }: VoiceFeedbackProps) => (
   </div>
 );
 
-// Update the Chatbot component to provide ChatContext
+// Update the Chatbot component
 export default function Chatbot() {
   const [currentLang, setCurrentLang] = useState<keyof typeof languages>('en');
   const [isOpen, setIsOpen] = useState(false);
@@ -1103,6 +1189,7 @@ export default function Chatbot() {
   const [activeThread, setActiveThread] = useState<string | undefined>(undefined);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { theme, setTheme } = useTheme();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -1111,6 +1198,10 @@ export default function Chatbot() {
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [voiceError, setVoiceError] = useState<string | undefined>(undefined);
   const chatWindowRef = useRef<HTMLDivElement>(null);
+  const [liveChat, setLiveChat] = useState<LiveChatStatus>({
+    isConnecting: false,
+    isConnected: false
+  });
 
   const scrollToMessage = () => {
     if (lastMessageRef.current) {
@@ -1215,7 +1306,50 @@ export default function Chatbot() {
     setActiveThread(undefined);
   };
 
-  // Update message sending with threading and context
+  // Add live chat simulation
+  useEffect(() => {
+    if (liveChat.isConnecting && !liveChat.isConnected) {
+      // Simulate queue position updates
+      const queueInterval = setInterval(() => {
+        setLiveChat(prev => ({
+          ...prev,
+          queuePosition: prev.queuePosition 
+            ? Math.max(1, prev.queuePosition - 1)
+            : 3,
+          estimatedWaitTime: prev.queuePosition 
+            ? Math.max(1, Math.floor(prev.queuePosition * 2.5))
+            : 7
+        }));
+      }, 5000);
+
+      // Simulate connection after queue
+      const connectionTimer = setTimeout(() => {
+        setLiveChat(prev => ({
+          isConnecting: false,
+          isConnected: true,
+          agentName: 'Sarah'
+        }));
+        
+        // Add agent connected message
+        const agentMessage: MessageWithLocation = {
+          id: generateId(),
+          text: "Hi, I'm Sarah, a customer support specialist at Apex Labs. I can see you'd like to discuss something. How can I help you today?",
+          isUser: false,
+          timestamp: new Date(),
+          contextTags: ['support'],
+          replyCount: 0
+        };
+        setMessages(prev => [...prev, agentMessage]);
+      }, 20000);
+
+      return () => {
+        clearInterval(queueInterval);
+        clearTimeout(connectionTimer);
+      };
+    }
+  }, [liveChat.isConnecting]);
+
+  // Update handleSendMessage
   const handleSendMessage = async (event?: React.MouseEvent | string) => {
     const messageText = typeof event === 'string' ? event.trim() : inputText.trim();
     
@@ -1239,6 +1373,87 @@ export default function Chatbot() {
     setIsLoading(true);
 
     try {
+      // Check for live chat requests
+      const liveChatRequest = messageText.toLowerCase();
+      if (liveChatRequest.match(/real person|real agent|human agent|speak to someone|talk to someone|live support|live chat|live agent|connect me|transfer to agent/)) {
+        const currentHour = new Date().getHours();
+        const currentDay = new Date().getDay();
+        const isBusinessHours = currentDay >= 0 && currentDay <= 4 && currentHour >= 9 && currentHour < 17;
+        
+        if (!isBusinessHours) {
+          const offHoursMessage: MessageWithLocation = {
+            id: generateId(),
+            text: "I apologize, but our live support team is only available during business hours (Sunday-Thursday, 9:00 AM - 5:00 PM EET). However, you can:\n\n" +
+                 "1. Schedule a call for a time that works for you\n" +
+                 "2. Send an email to contact@apexlabs.eg\n" +
+                 "3. Continue chatting with me, and I'll do my best to help\n\n" +
+                 "Would you like to schedule a call for when our team is back in the office?",
+            isUser: false,
+            timestamp: new Date(),
+            threadId: activeThread,
+            contextTags: ['support'],
+            replyCount: 0,
+            showScheduler: true
+          };
+          
+          setMessages(prev => [...prev, offHoursMessage]);
+          setIsLoading(false);
+          return;
+        }
+
+        setLiveChat({
+          isConnecting: true,
+          isConnected: false,
+          queuePosition: 3,
+          estimatedWaitTime: 7
+        });
+        
+        const connectingMessage: MessageWithLocation = {
+          id: generateId(),
+          text: "I'll connect you with a support specialist right away. While you wait, you'll be able to see your position in the queue and estimated wait time.",
+          isUser: false,
+          timestamp: new Date(),
+          threadId: activeThread,
+          contextTags: ['support'],
+          replyCount: 0
+        };
+        
+        setMessages(prev => [...prev, connectingMessage]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Check for theme-related requests
+      const themeRequest = messageText.toLowerCase();
+      if (themeRequest.match(/dark mode|light mode|toggle theme|switch theme|change theme/)) {
+        let newTheme: string;
+        let responseText: string;
+
+        if (themeRequest.includes('dark') || themeRequest.includes('light')) {
+          newTheme = themeRequest.includes('dark') ? 'dark' : 'light';
+          responseText = `I've switched to ${newTheme} mode for you. Let me know if you'd like to switch back!`;
+        } else {
+          newTheme = theme === 'dark' ? 'light' : 'dark';
+          responseText = `I've toggled the theme to ${newTheme} mode for you. Let me know if you'd like to switch it again!`;
+        }
+
+        setTheme(newTheme);
+        
+        const themeResponse: MessageWithLocation = {
+          id: generateId(),
+          text: responseText,
+          isUser: false,
+          timestamp: new Date(),
+          threadId: activeThread,
+          contextTags: ['theme'],
+          replyCount: 0
+        };
+        
+        setMessages(prev => [...prev, themeResponse]);
+        setIsLoading(false);
+        return;
+      }
+
       // Check if this is a scheduling request
       const isSchedulingRequest = messageText.toLowerCase().match(/schedule|book|appointment|call|meeting|consultation/);
       
@@ -1422,7 +1637,7 @@ export default function Chatbot() {
           ? messages.find(m => m.id === message.threadId)
           : undefined;
 
-  return (
+        return (
           <motion.div
             key={message.id}
             initial={{ opacity: 0, y: 10 }}
@@ -1443,6 +1658,29 @@ export default function Chatbot() {
           </motion.div>
         );
       })}
+      {liveChat.isConnecting && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-start w-full"
+        >
+          <ConnectingInterface 
+            status={liveChat}
+            onCancel={() => {
+              setLiveChat({ isConnecting: false, isConnected: false });
+              const cancelMessage: MessageWithLocation = {
+                id: generateId(),
+                text: "I've cancelled the connection to a support agent. Is there something else I can help you with?",
+                isUser: false,
+                timestamp: new Date(),
+                contextTags: ['support'],
+                replyCount: 0
+              };
+              setMessages(prev => [...prev, cancelMessage]);
+            }}
+          />
+        </motion.div>
+      )}
       {isLoading && (
         <motion.div
           initial={{ opacity: 0 }}

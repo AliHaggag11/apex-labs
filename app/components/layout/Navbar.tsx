@@ -122,20 +122,18 @@ const Navbar = () => {
                         {item.label}
                       </MobileNavLink>
                     ))}
+                    <ThemeToggle mode="switch" />
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-200/20 dark:border-dark-border/20 flex items-center justify-between">
+                  <div className="mt-4 pt-4 border-t border-gray-200/20 dark:border-dark-border/20">
                     <motion.a
                       whileTap={{ scale: 0.95 }}
                       href="/contact"
                       onClick={() => setIsOpen(false)}
-                      className="flex-1 text-center bg-gradient-to-r from-primary-600 to-blue-500 dark:from-primary-500 dark:to-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:shadow-lg hover:shadow-primary-600/20 dark:hover:shadow-primary-500/20 transition-all"
+                      className="w-full text-center bg-gradient-to-r from-primary-600 to-blue-500 dark:from-primary-500 dark:to-blue-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:shadow-lg hover:shadow-primary-600/20 dark:hover:shadow-primary-500/20 transition-all block"
                     >
                       Contact Us
                     </motion.a>
-                    <div className="flex items-center ml-4 pl-4 border-l border-gray-200/20 dark:border-dark-border/20">
-                      <ThemeToggle />
-                    </div>
                   </div>
                 </div>
               </motion.div>
