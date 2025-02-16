@@ -1324,11 +1324,11 @@ export default function Chatbot() {
 
       // Simulate connection after queue
       const connectionTimer = setTimeout(() => {
-        setLiveChat(prev => ({
+        setLiveChat({
           isConnecting: false,
           isConnected: true,
           agentName: 'Sarah'
-        }));
+        });
         
         // Add agent connected message
         const agentMessage: MessageWithLocation = {
